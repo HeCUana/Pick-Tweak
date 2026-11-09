@@ -1,0 +1,39 @@
+{
+	"schemaVersion": 1,
+	"id": "picktweak",
+	"version": "${version}",
+	"name": "Pick Tweak",
+	"description": "masa 系列的拾取增强：远距离拾取方块 / 实体 / NBT / 状态属性，ID 复制，智能选工具与武器。服务端提供权威拾取服务，客户端可选安装 MaLiLib 获得配置面板。",
+	"authors": [
+		"HeCUan"
+	],
+	"license": "MIT",
+	"icon": "assets/picktweak/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"fi.dy.masa.picktweak.PickTweak"
+		],
+		"client": [
+			"fi.dy.masa.picktweak.PickBlockProClient"
+		],
+		"modmenu": [
+			"fi.dy.masa.picktweak.compat.ModMenuImpl"
+		]
+	},
+	"mixins": [
+		"picktweak.mixins.json"
+	],
+	"accessWidener": "picktweak.accesswidener",
+	"depends": {
+		"fabricloader": ">=0.20.1",
+		"minecraft": "~26.3",
+		"java": ">=25",
+		"fabric-api": "*"
+	},
+	"suggests": {
+		"malilib": ">=0.30.2",
+		"modmenu": "*",
+		"litematica": "*"
+	}
+}

@@ -1,0 +1,5 @@
+# 统一按 LF 存储，Windows 批处理脚本保持 CRLF
+* text=auto eol=lf
+*.bat text eol=crlf
+*.jar binary
+*.png binary
