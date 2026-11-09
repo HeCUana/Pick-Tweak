@@ -1,6 +1,7 @@
 package fi.dy.masa.picktweak.pick;
 
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
@@ -50,7 +51,12 @@ public final class BlockPicker {
 		}
 	}
 
-	/** 读取实体 NBT（不含 id）。 */
+	/**
+	 * 读取实体 NBT（不含 id）。
+	 *
+	 * <p>26.3 的实体装备存在 {@code equipment} 键里（{@code EntityEquipment.CODEC}），
+	 * {@code saveWithoutId} 会一并写出来，所以穿装备的盔甲架也能拿到完整数据。</p>
+	 */
 	public static CompoundTag entityNbt(ClientLevel level, Entity entity) {
 		try (ProblemReporter.ScopedCollector collector = new ProblemReporter.ScopedCollector(LOGGER)) {
 			TagValueOutput output = TagValueOutput.createWithContext(collector, level.registryAccess());
@@ -59,6 +65,38 @@ public final class BlockPicker {
 			tag.remove("id");
 			return tag;
 		} catch (Exception e) {
+			LOGGER.debug("[Pick Block Pro] 读取实体 NBT 失败", e);
+			return null;
+		}
+	}
+
+	/** 取得某个方块的注册 ID 文本。 */
+	public static String blockId(BlockState state) {
+		net.minecraft.resources.Identifier id = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(state.getBlock());
+		return id == null ? "minecraft:air" : id.toString();
+	}
+
+	/**
+	 * 读取方块实体的 NBT（不含 id，可直接粘进 /data 或 /summon）。
+	 *
+	 * <p>26.3 里方块实体的数据分两处：{@code saveAdditional} 写的自定义数据，
+	 * 以及 {@code saveWithoutMetadata} 额外写的 {@code components}
+	 * （告示牌文字之类的已经挪进组件里了）。这里两边都要，
+	 * 否则复制出来的 NBT 会缺一大半。</p>
+	 */
+	public static CompoundTag blockEntityNbt(ClientLevel level, BlockPos pos) {
+		BlockEntity blockEntity = level.getBlockEntity(pos);
+		if (blockEntity == null) {
+			return null;
+		}
+		try (ProblemReporter.ScopedCollector collector = new ProblemReporter.ScopedCollector(LOGGER)) {
+			TagValueOutput output = TagValueOutput.createWithContext(collector, level.registryAccess());
+			blockEntity.saveWithoutMetadata(output);
+			CompoundTag tag = output.buildResult();
+			tag.remove("id");
+			return tag;
+		} catch (Exception e) {
+			LOGGER.debug("[Pick Block Pro] 读取方块实体 NBT 失败", e);
 			return null;
 		}
 	}

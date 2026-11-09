@@ -48,6 +48,10 @@ add("picktweak.config.blockPickerTakeOverLitematica", "接管 Litematica 拾取"
     "Prendre en charge le pick block de Litematica", "Перехватывать pick block Litematica")
 add("picktweak.config.blockPickerShowFeedback", "显示拾取提示", "顯示拾取提示", "Show pick feedback",
     "Afficher un retour de sélection", "Показывать сообщение о выборе")
+add("picktweak.config.blockPickerCopyNbt", "Ctrl + 中键复制 NBT", "Ctrl + 中鍵複製 NBT", "Ctrl + middle click copies the NBT",
+    "Ctrl + clic du milieu copie le NBT", "Ctrl + средняя кнопка копирует NBT")
+add("picktweak.config.blockPickerShowCopiedNbt", "在聊天栏显示复制的 NBT", "在聊天欄顯示複製的 NBT", "Show the copied NBT in the chat box",
+    "Afficher le NBT copié dans le chat", "Показывать скопированный NBT в чате")
 add("picktweak.config.blockEntityNbtBlacklist", "方块实体 NBT 黑名单", "方塊實體 NBT 黑名單", "Block entity NBT blacklist",
     "Liste noire des NBT de bloc", "Чёрный список NBT блоков")
 add("picktweak.config.statePropertyBlacklist", "方块状态属性黑名单", "方塊狀態屬性黑名單", "Block state property blacklist",
@@ -168,6 +172,10 @@ add("picktweak.message.server_mod_missing", "服务器未安装 Pick Tweak 服�
     "На сервере нет серверной части Pick Tweak — возврат к ванильному pick block.")
 add("picktweak.message.give_denied", "服务端禁止了工具发放请求。", "伺服器禁止了工具發放請求。", "The server denied the tool request.",
     "Le serveur a refusé la demande d'outil.", "Сервер отклонил запрос на выдачу инструмента.")
+add("picktweak.message.nbt_copied", "已把 %s 的 NBT 复制到剪贴板。", "已把 %s 的 NBT 複製到剪貼簿。", "Copied the NBT of %s to the clipboard.",
+    "NBT de %s copié dans le presse-papiers.", "NBT сущности %s скопирован в буфер обмена.")
+add("picktweak.message.no_nbt", "%s 没有可复制的 NBT。", "%s 沒有可複製的 NBT。", "%s has no NBT to copy.",
+    "%s n'a aucun NBT à copier.", "У %s нет NBT для копирования.")
 
 # ---------------- 命令 ----------------
 add("picktweak.command.reload_success", "已重新载入自定义映射。", "已重新載入自訂映射。", "Custom mappings reloaded.",

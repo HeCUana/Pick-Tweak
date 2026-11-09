@@ -44,6 +44,7 @@ public class SmokeTest {
 		String json = gson.toJson(Configs.BLOCK_PICKER_ENABLED.getAsJsonElement());
 		check("config option json round-trip", json != null && json.contains("true"), json);
 		check("config snapshot", Configs.blockPicker.enabled && Configs.blockPicker.creativeRange == 100.0D
+						&& Configs.blockPicker.copyNbt && Configs.blockPicker.showCopiedNbt
 						&& Configs.toolPicker.tools.size() == 9 && Configs.toolPicker.weapons.size() == 4
 						&& Configs.inventory.lockedSlots.length == 9,
 				"creative=" + Configs.blockPicker.creativeRange
@@ -90,14 +91,50 @@ public class SmokeTest {
 				!filtered.contains("id") && filtered.contains("Items"),
 				String.valueOf(filtered.keySet()));
 		var nested = (CompoundTag) filtered.getListOrEmpty("Items").get(0);
-		check("nbt blacklist is recursive",
-				!nested.contains("id") && nested.contains("Count"),
+		check("nbt blacklist keeps nested item id",
+				nested.contains("id") && nested.contains("Count"),
 				"nested keys = " + nested.keySet());
+
+		CompoundTag deepFiltered = NbtFormatter.filter(tag, List.of("Items.id"));
+		check("nbt blacklist matches nested paths",
+				deepFiltered.contains("id")
+						&& !((CompoundTag) deepFiltered.getListOrEmpty("Items").get(0)).contains("id"),
+				"nested keys = " + ((CompoundTag) deepFiltered.getListOrEmpty("Items").get(0)).keySet());
 
 		String compact = NbtFormatter.compact(filtered);
 		String pretty = NbtFormatter.pretty(filtered);
 		check("nbt compact is single line", !compact.contains("\n"), compact);
 		check("nbt pretty is indented", pretty.contains("\n"), pretty.replace("\n", "\\n"));
+
+		// 3b. Ctrl + 中键复制 NBT：实体装备要完整保留
+		CompoundTag entity = new CompoundTag();
+		entity.putString("id", "minecraft:armor_stand");
+		entity.putString("UUID", "0d9d2b0e-0000-4000-8000-000000000000");
+		ListTag pos = new ListTag();
+		pos.add(net.minecraft.nbt.DoubleTag.valueOf(1.0D));
+		entity.put("Pos", pos);
+		CompoundTag equipment = new CompoundTag();
+		CompoundTag helmet = new CompoundTag();
+		helmet.putString("id", "minecraft:diamond_helmet");
+		helmet.putInt("count", 1);
+		equipment.put("head", helmet);
+		entity.put("equipment", equipment);
+		entity.remove("id");   // BlockPicker.entityNbt() 就是这么做的
+
+		String entityCopy = NbtFormatter.copyText(entity, Configs.blockPicker.entityNbtBlacklist, false);
+		check("entity nbt copy drops volatile keys",
+				entityCopy != null && !entityCopy.contains("UUID") && !entityCopy.contains("Pos"),
+				entityCopy);
+		check("entity nbt copy keeps equipment and its item id",
+				entityCopy != null && entityCopy.contains("equipment")
+						&& entityCopy.contains("minecraft:diamond_helmet"),
+				entityCopy);
+		check("entity nbt copy has no top-level id",
+				entityCopy != null && !entityCopy.contains("minecraft:armor_stand"),
+				entityCopy);
+		check("empty nbt copy is null",
+				NbtFormatter.copyText(new CompoundTag(), List.of(), false) == null,
+				"ok");
 
 		// 4. overrides 物品字符串解析
 		var swordItem = BuiltInRegistries.ITEM.getValue(net.minecraft.resources.Identifier.parse("minecraft:diamond_sword"));

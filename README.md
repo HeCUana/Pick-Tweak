@@ -1,7 +1,7 @@
 # Pick Tweak
 
-masa 风格的拾取增强（Minecraft 26.3 / Fabric）：远距离拾取方块与实体、Ctrl 附加 NBT、Alt 附加状态属性、
-ID 一键复制、智能选工具与武器，配置面板由 MaLiLib 提供。
+masa 风格的拾取增强（Minecraft 26.3 / Fabric）：远距离拾取方块与实体、Ctrl 附加 NBT 并复制到剪贴板、
+Alt 附加状态属性、ID 一键复制、智能选工具与武器，配置面板由 MaLiLib 提供。
 
 ## 依赖
 
@@ -11,7 +11,7 @@ ID 一键复制、智能选工具与武器，配置面板由 MaLiLib 提供。
 
 ## 安装
 
-服务端与客户端都放入 `picktweak-1.0.0-beta.1.jar`；客户端再装 MaLiLib 与 Mod Menu。
+服务端与客户端都放入 `picktweak-1.0.0-beta.3.jar`；客户端再装 MaLiLib 与 Mod Menu。
 服务端组件负责权威拾取（校验距离、计算 NBT 与状态属性、发放物品），客户端负责界面与热键。
 
 ## 快捷键
@@ -19,7 +19,7 @@ ID 一键复制、智能选工具与武器，配置面板由 MaLiLib 提供。
 | 按键 | 作用 |
 |---|---|
 | 中键 | 拾取方块 / 实体（可远距离） |
-| Ctrl + 中键 | 额外附加完整 NBT |
+| Ctrl + 中键 | 额外附加完整 NBT，并把目标的 NBT 复制到剪贴板 |
 | Alt + 中键 | 额外附加方块状态属性（朝向、台阶朝向……） |
 | V | 复制目标 ID 到聊天栏与剪贴板（Ctrl + V 输出 NBT） |
 | G | 拾取最合适的工具 / 武器 |
@@ -45,7 +45,7 @@ ID 一键复制、智能选工具与武器，配置面板由 MaLiLib 提供。
 ## 构建
 
 ```bash
-./gradlew build     # 产物：build/libs/picktweak-1.0.0-beta.1.jar
+./gradlew build     # 产物：build/libs/picktweak-1.0.0-beta.3.jar
 ./gradlew smoke     # 冒烟测试（不启动游戏）
 ```
 

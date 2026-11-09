@@ -151,6 +151,8 @@ public class GuiConfigs extends GuiConfigsBase implements IConfigGuiAllTab {
 						Configs.BLOCK_PICKER_PREFER_ENTITY_HEADS,
 						Configs.BLOCK_PICKER_TAKE_OVER_LITEMATICA,
 						Configs.BLOCK_PICKER_SHOW_FEEDBACK,
+						Configs.BLOCK_PICKER_COPY_NBT,
+						Configs.BLOCK_PICKER_SHOW_COPIED_NBT,
 						Configs.BLOCK_ENTITY_NBT_BLACKLIST,
 						Configs.STATE_PROPERTY_BLACKLIST,
 						Configs.ENTITY_NBT_BLACKLIST

@@ -1,16 +1,23 @@
 package fi.dy.masa.picktweak.pick;
 
 import fi.dy.masa.picktweak.config.Configs;
-import fi.dy.masa.picktweak.config.Configs;
+import fi.dy.masa.picktweak.inv.InventoryManager;
 import fi.dy.masa.picktweak.net.PbpPayloads;
+import fi.dy.masa.picktweak.util.NbtFormatter;
 import fi.dy.masa.picktweak.util.PbpText;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
+
+import java.util.List;
 
 /**
  * 客户端的中键拾取处理。
@@ -44,11 +51,10 @@ public final class ClientPicker {
 		boolean ctrl = mc.hasControlDown();
 		boolean alt = mc.hasAltDown();
 
-		if (!ClientPlayNetworking.canSend(PbpPayloads.PickBlock.TYPE)) {
-			if (ctrl || alt) {
-				hintMissingServer();
-			}
-			return false;
+		// 服务端装了 PBP 就走权威流程（能真正发放物品）；没装则客户端本地算一份。
+		boolean serverSupport = ClientPlayNetworking.canSend(PbpPayloads.PickBlock.TYPE);
+		if (!serverSupport && (ctrl || alt)) {
+			hintMissingServer();
 		}
 
 		double blockRange = effectiveRange(config.range, config.useInteractionRange, config.creativeRange, player);
@@ -59,7 +65,18 @@ public final class ClientPicker {
 			if (!withinRange(mc, hit, blockRange)) {
 				return true;
 			}
-			ClientPlayNetworking.send(new PbpPayloads.PickBlock(blockResult.getBlockPos(), ctrl, alt));
+			if (ctrl) {
+				// Ctrl：把方块实体的 NBT 复制到剪贴板（可直接粘进 /data 或 /summon）。
+				copyBlockNbt(mc, blockResult.getBlockPos());
+			}
+			if (serverSupport) {
+				ClientPlayNetworking.send(new PbpPayloads.PickBlock(blockResult.getBlockPos(), ctrl, alt));
+			} else {
+				ItemStack stack = ClientPickBuilder.buildBlockItem(mc.level, blockResult.getBlockPos(), ctrl, alt);
+				if (!stack.isEmpty()) {
+					InventoryManager.give(stack);
+				}
+			}
 			feedback(config, blockResult.getBlockPos().toShortString(), ctrl, alt);
 			return true;
 		}
@@ -68,7 +85,18 @@ public final class ClientPicker {
 			if (!withinRange(mc, hit, entityRange)) {
 				return true;
 			}
-			ClientPlayNetworking.send(new PbpPayloads.PickEntity(entityResult.getEntity().getId(), ctrl));
+			if (ctrl) {
+				// Ctrl：把实体的完整 NBT 复制到剪贴板（盔甲架的装备、药水、属性等）。
+				copyEntityNbt(mc, entityResult.getEntity());
+			}
+			if (serverSupport) {
+				ClientPlayNetworking.send(new PbpPayloads.PickEntity(entityResult.getEntity().getId(), ctrl));
+			} else {
+				ItemStack stack = ClientPickBuilder.buildEntityItem(mc.level, entityResult.getEntity(), ctrl);
+				if (!stack.isEmpty()) {
+					InventoryManager.give(stack);
+				}
+			}
 			feedback(config, entityResult.getEntity().getName().getString(), ctrl, false);
 			return true;
 		}
@@ -93,6 +121,55 @@ public final class ClientPicker {
 			return false;
 		}
 		return hit.getLocation().distanceToSqr(camera.getEyePosition(1.0F)) <= range * range;
+	}
+
+	/**
+	 * Ctrl + 中键（方块）：把方块实体的 NBT 复制到剪贴板。
+	 *
+	 * <p>普通方块没有方块实体，也就没有 NBT 可复制，这时只提示一句。</p>
+	 */
+	private static void copyBlockNbt(Minecraft mc, BlockPos pos) {
+		Configs.BlockPicker config = Configs.blockPicker;
+		if (!config.copyNbt) {
+			return;
+		}
+		CompoundTag tag = BlockPicker.blockEntityNbt(mc.level, pos);
+		String label = BlockPicker.blockId(mc.level.getBlockState(pos));
+		copyNbt(tag, label, config.blockEntityNbtBlacklist, config.showCopiedNbt);
+	}
+
+	/**
+	 * Ctrl + 中键（实体）：把实体的 NBT 复制到剪贴板。
+	 *
+	 * <p>26.3 的实体装备存在 {@code equipment} 键里，穿装备的盔甲架也能完整复制。</p>
+	 */
+	private static void copyEntityNbt(Minecraft mc, Entity entity) {
+		Configs.BlockPicker config = Configs.blockPicker;
+		if (!config.copyNbt) {
+			return;
+		}
+		CompoundTag tag = BlockPicker.entityNbt(mc.level, entity);
+		String label = entity.getName().getString();
+		copyNbt(tag, label, config.entityNbtBlacklist, config.showCopiedNbt);
+	}
+
+	/**
+	 * 把目标的 NBT 复制到剪贴板，并在聊天栏打印一份。
+	 *
+	 * <p>剪贴板里放的是单行 SNBT（不含 id），可以直接粘进 {@code /data} 或 {@code /summon}；
+	 * 聊天栏里放的是同一份数据的缩进版，方便直接看装备、药水这些内容。</p>
+	 */
+	private static void copyNbt(CompoundTag tag, String label, List<String> blacklist, boolean showInChat) {
+		CompoundTag filtered = NbtFormatter.filter(tag, blacklist);
+		if (filtered == null || filtered.isEmpty()) {
+			PbpText.chat(Component.translatable("picktweak.message.no_nbt", label));
+			return;
+		}
+		PbpText.copyToClipboard(NbtFormatter.compact(filtered));
+		PbpText.chat(Component.translatable("picktweak.message.nbt_copied", label));
+		if (showInChat) {
+			PbpText.chat(Component.literal(NbtFormatter.pretty(filtered)));
+		}
 	}
 
 	/** 拾取反馈（可在配置里打开，用来确认修饰键是否生效）。 */
