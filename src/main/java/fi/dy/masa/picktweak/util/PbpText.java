@@ -11,9 +11,13 @@ public final class PbpText {
 
 	/** 在聊天栏打印一条本地消息。 */
 	public static void chat(Component message) {
-		Minecraft mc = Minecraft.getInstance();
-		if (mc.gui != null && mc.gui.hud != null) {
-			mc.gui.hud.getChat().addClientSystemMessage(message);
+		try {
+			Minecraft mc = Minecraft.getInstance();
+			if (mc.gui != null && mc.gui.hud != null) {
+				mc.gui.hud.getChat().addClientSystemMessage(message);
+			}
+		} catch (Throwable t) {
+			// 聊天栏还没准备好的时候忽略即可
 		}
 	}
 
@@ -22,11 +26,16 @@ public final class PbpText {
 		if (text == null || text.isEmpty()) {
 			return false;
 		}
-		Minecraft mc = Minecraft.getInstance();
-		if (mc.keyboardHandler == null) {
+		try {
+			Minecraft mc = Minecraft.getInstance();
+			if (mc.keyboardHandler == null) {
+				return false;
+			}
+			mc.keyboardHandler.setClipboard(text);
+			return true;
+		} catch (Throwable t) {
+			// 某些平台（Wayland、无头环境）拿不到剪贴板，不该因此影响拾取
 			return false;
 		}
-		mc.keyboardHandler.setClipboard(text);
-		return true;
 	}
 }

@@ -4,6 +4,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mojang.logging.LogUtils;
+import fi.dy.masa.picktweak.util.BlockItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
@@ -63,6 +64,10 @@ public final class ServerPickService {
 		String override = PbpOverrides.getBlockOverride(blockId(state));
 		if (override != null) {
 			stack = ItemStackParser.parse(override, level.registryAccess());
+		}
+		if (stack.isEmpty() && config.pickFluids) {
+			// 流体（和粉雪）拾取成装满的桶
+			stack = BlockItems.fluidBucket(state);
 		}
 		if (stack.isEmpty()) {
 			stack = state.getCloneItemStack(level, pos, includeData && config.allowIncludeData);

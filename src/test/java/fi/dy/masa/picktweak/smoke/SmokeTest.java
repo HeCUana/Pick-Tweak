@@ -188,6 +188,56 @@ public class SmokeTest {
 		check("celestial direction is normalized",
 				Math.abs(up.length() - 1.0D) < 1.0E-6D, String.valueOf(up.length()));
 
+		// 9. 全部快捷方式都在面板里可改
+		check("hotkeys: pick modifiers + actions + chat slots",
+				fi.dy.masa.picktweak.config.Hotkeys.ALL_HOTKEYS.size() == 15
+						&& fi.dy.masa.picktweak.config.Hotkeys.CHAT_SLOT_KEYS.size() == 10,
+				"total=" + fi.dy.masa.picktweak.config.Hotkeys.ALL_HOTKEYS.size()
+						+ " chatSlots=" + fi.dy.masa.picktweak.config.Hotkeys.CHAT_SLOT_KEYS.size());
+		check("hotkeys: nbt modifier default is ctrl + middle mouse",
+				fi.dy.masa.picktweak.config.Hotkeys.PICK_WITH_NBT.getStringValue().equals("LEFT_CONTROL,MOUSE_MIDDLE"),
+				fi.dy.masa.picktweak.config.Hotkeys.PICK_WITH_NBT.getStringValue());
+		check("hotkeys: state modifier default is alt + middle mouse",
+				fi.dy.masa.picktweak.config.Hotkeys.PICK_WITH_STATE.getStringValue().equals("LEFT_ALT,MOUSE_MIDDLE"),
+				fi.dy.masa.picktweak.config.Hotkeys.PICK_WITH_STATE.getStringValue());
+		check("hotkeys: chat slot 1 default is ctrl + 1",
+				fi.dy.masa.picktweak.config.Hotkeys.CHAT_SLOT_KEYS.get(0).getStringValue().equals("LEFT_CONTROL,1"),
+				fi.dy.masa.picktweak.config.Hotkeys.CHAT_SLOT_KEYS.get(0).getStringValue());
+
+		// 10. Axiom 共存模式
+		var yieldMode = Configs.AxiomMode.YIELD;
+		var overrideMode = Configs.AxiomMode.OVERRIDE;
+		check("axiom mode: fromString round trip",
+				Configs.AxiomMode.YIELD.fromString("override") == overrideMode
+						&& Configs.AxiomMode.YIELD.fromString("YIELD") == yieldMode
+						&& Configs.AxiomMode.YIELD.fromString("nonsense") == yieldMode,
+				"ok");
+		check("axiom mode: cycle wraps around",
+				yieldMode.cycle(true) == overrideMode && overrideMode.cycle(true) == yieldMode,
+				"ok");
+		check("axiom mode: default is yield",
+				Configs.blockPicker.axiomMode == Configs.AxiomMode.YIELD,
+				String.valueOf(Configs.blockPicker.axiomMode));
+
+		// 11. 流体拾取成桶
+		var waterBlock = BuiltInRegistries.BLOCK.getValue(net.minecraft.resources.Identifier.parse("minecraft:water"));
+		var lavaBlock = BuiltInRegistries.BLOCK.getValue(net.minecraft.resources.Identifier.parse("minecraft:lava"));
+		var stoneBlock = BuiltInRegistries.BLOCK.getValue(net.minecraft.resources.Identifier.parse("minecraft:stone"));
+		var waterState = waterBlock == null ? null : waterBlock.defaultBlockState();
+		var lavaState = lavaBlock == null ? null : lavaBlock.defaultBlockState();
+		var stoneState = stoneBlock == null ? null : stoneBlock.defaultBlockState();
+		check("fluid bucket: water",
+				waterState != null && fi.dy.masa.picktweak.util.BlockItems.fluidBucketItem(waterState)
+						== net.minecraft.world.item.Items.WATER_BUCKET,
+				waterState == null ? "no water block" : "ok");
+		check("fluid bucket: lava",
+				lavaState != null && fi.dy.masa.picktweak.util.BlockItems.fluidBucketItem(lavaState)
+						== net.minecraft.world.item.Items.LAVA_BUCKET,
+				lavaState == null ? "no lava block" : "ok");
+		check("fluid bucket: plain block has none",
+				stoneState != null && fi.dy.masa.picktweak.util.BlockItems.fluidBucketItem(stoneState) == null,
+				stoneState == null ? "no stone block" : "ok");
+
 		System.out.println();
 		System.out.println(failures == 0 ? "ALL SMOKE TESTS PASSED" : (failures + " SMOKE TEST(S) FAILED"));
 		if (failures > 0) {

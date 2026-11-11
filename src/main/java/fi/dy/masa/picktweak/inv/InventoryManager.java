@@ -1,7 +1,6 @@
 package fi.dy.masa.picktweak.inv;
 
 import fi.dy.masa.picktweak.config.Configs;
-import fi.dy.masa.picktweak.config.Configs;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.component.DataComponents;

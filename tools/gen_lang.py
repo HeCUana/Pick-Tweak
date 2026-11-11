@@ -52,6 +52,8 @@ add("picktweak.config.blockPickerCopyNbt", "Ctrl + 中键复制 NBT", "Ctrl + �
     "Ctrl + clic du milieu copie le NBT", "Ctrl + средняя кнопка копирует NBT")
 add("picktweak.config.blockPickerShowCopiedNbt", "在聊天栏显示复制的 NBT", "在聊天欄顯示複製的 NBT", "Show the copied NBT in the chat box",
     "Afficher le NBT copié dans le chat", "Показывать скопированный NBT в чате")
+add("picktweak.config.blockPickerAxiomMode", "与 Axiom 共存方式", "與 Axiom 共存方式", "How to coexist with Axiom",
+    "Coexistence avec Axiom", "Совместная работа с Axiom")
 add("picktweak.config.blockEntityNbtBlacklist", "方块实体 NBT 黑名单", "方塊實體 NBT 黑名單", "Block entity NBT blacklist",
     "Liste noire des NBT de bloc", "Чёрный список NBT блоков")
 add("picktweak.config.statePropertyBlacklist", "方块状态属性黑名单", "方塊狀態屬性黑名單", "Block state property blacklist",
@@ -143,6 +145,28 @@ add("picktweak.config.hotkeyPickTool", "拾取工具 / 武器", "拾取工具 / 
     "Récupérer l'outil ou l'arme", "Взять инструмент или оружие")
 add("picktweak.config.hotkeyOpenConfig", "打开配置界面", "打開設定介面", "Open the config GUI",
     "Ouvrir la fenêtre de configuration", "Открыть окно настроек")
+add("picktweak.config.hotkeyPickWithNbt", "拾取时附加 NBT（并复制到剪贴板）", "拾取時附加 NBT（並複製到剪貼簿）",
+    "Pick with NBT (and copy it to the clipboard)",
+    "Sélectionner avec le NBT (et le copier dans le presse-papiers)",
+    "Выбрать с NBT (и скопировать в буфер обмена)")
+add("picktweak.config.hotkeyPickWithState", "拾取时附加方块状态属性", "拾取時附加方塊狀態屬性",
+    "Pick with the block state properties",
+    "Sélectionner avec les propriétés d'état du bloc",
+    "Выбрать со свойствами состояния блока")
+for _i in range(1, 10):
+    add(f"picktweak.config.hotkeyChatSlot{_i}", f"聊天框内写第 {_i} 格物品 ID", f"聊天框內寫第 {_i} 格物品 ID",
+        f"Write the ID of hotbar slot {_i} in the chat box",
+        f"Écrire l'ID de la case {_i} dans le chat",
+        f"Записать ID ячейки {_i} в чат")
+add("picktweak.config.hotkeyChatSlot0", "聊天框内写第 10 格物品 ID", "聊天框內寫第 10 格物品 ID",
+    "Write the ID of hotbar slot 10 in the chat box",
+    "Écrire l'ID de la case 10 dans le chat",
+    "Записать ID ячейки 10 в чат")
+add("picktweak.config.axiomMode.yield", "让位（Axiom 的功能优先）", "讓位（Axiom 的功能優先）",
+    "Yield (Axiom's features come first)", "Céder (les fonctions d'Axiom d'abord)",
+    "Уступить (сначала функции Axiom)")
+add("picktweak.config.axiomMode.override", "覆盖（Pick Tweak 优先）", "覆蓋（Pick Tweak 優先）",
+    "Override (Pick Tweak comes first)", "Écraser (Pick Tweak d'abord)", "Перекрыть (сначала Pick Tweak)")
 add("key.picktweak.id", "拾取 ID", "拾取 ID", "Pick ID", "Récupérer l'ID", "Взять ID")
 add("key.picktweak.tool", "拾取工具", "拾取工具", "Pick Tool", "Récupérer l'outil", "Взять инструмент")
 
@@ -165,11 +189,11 @@ add("picktweak.message.picked", "PBP：已拾取 %s", "PBP：已拾取 %s", "PBP
 add("picktweak.message.generated", "已生成 %s", "已生成 %s", "Generated %s", "%s généré", "Создано: %s")
 add("picktweak.message.generate_failed", "生成失败，请检查配置。", "生成失敗，請檢查設定。", "Generation failed, check your config.",
     "Échec de la génération, vérifiez la configuration.", "Не удалось создать, проверьте настройки.")
-add("picktweak.message.server_mod_missing", "服务器未安装 Pick Tweak 服务端组件，已回退到原版拾取。",
-    "伺服器未安裝 Pick Tweak 伺服器元件，已回退到原版拾取。",
-    "The server has no Pick Tweak server component; falling back to vanilla pick block.",
-    "Le serveur ne contient pas le composant serveur de Pick Tweak ; retour au pick block vanilla.",
-    "На сервере нет серверной части Pick Tweak — возврат к ванильному pick block.")
+add("picktweak.message.server_mod_missing", "服务端未安装 Pick Tweak，已改用客户端本地拾取。",
+    "伺服器未安裝 Pick Tweak，已改用用戶端本地拾取。",
+    "The server has no Pick Tweak server component; falling back to the client-side pick.",
+    "Le serveur ne contient pas le composant serveur de Pick Tweak ; retour à la sélection côté client.",
+    "На сервере нет серверной части Pick Tweak — возврат к выбору на клиенте.")
 add("picktweak.message.give_denied", "服务端禁止了工具发放请求。", "伺服器禁止了工具發放請求。", "The server denied the tool request.",
     "Le serveur a refusé la demande d'outil.", "Сервер отклонил запрос на выдачу инструмента.")
 add("picktweak.message.nbt_copied", "已把 %s 的 NBT 复制到剪贴板。", "已把 %s 的 NBT 複製到剪貼簿。", "Copied the NBT of %s to the clipboard.",

@@ -1,9 +1,12 @@
 package fi.dy.masa.picktweak;
 
 import com.mojang.blaze3d.platform.InputConstants;
+import fi.dy.masa.malilib.config.options.ConfigHotkey;
 import fi.dy.masa.picktweak.compat.LitematicaCompat;
 import fi.dy.masa.picktweak.compat.MalilibIntegration;
 import fi.dy.masa.picktweak.config.Configs;
+import fi.dy.masa.picktweak.config.HotkeyBinds;
+import fi.dy.masa.picktweak.config.Hotkeys;
 import fi.dy.masa.picktweak.id.IdPicker;
 import fi.dy.masa.picktweak.tool.ToolPicker;
 import net.fabricmc.api.ClientModInitializer;
@@ -21,6 +24,8 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
+
+import java.util.List;
 
 /**
  * 客户端入口。
@@ -107,7 +112,7 @@ public class PickBlockProClient implements ClientModInitializer {
 		}
 	}
 
-	/** 聊天框内 Ctrl + 数字键：把快捷栏物品 ID 写进输入框。 */
+	/** 聊天框内的快捷键：把快捷栏物品 ID 写进输入框（默认 Ctrl + 1…0）。 */
 	private void registerChatShortcut() {
 		ScreenEvents.AFTER_INIT.register((client, screen, width, height) -> {
 			if (screen instanceof ChatScreen) {
@@ -120,10 +125,7 @@ public class PickBlockProClient implements ClientModInitializer {
 		if (!Configs.idPicker.chatShortcut) {
 			return;
 		}
-		if (!event.hasControlDown() || event.hasAltDown()) {
-			return;
-		}
-		int slot = slotForKey(event.input());
+		int slot = chatSlotForKey(event);
 		if (slot < 0) {
 			return;
 		}
@@ -141,13 +143,21 @@ public class PickBlockProClient implements ClientModInitializer {
 		}
 	}
 
-	private static int slotForKey(int key) {
-		if (key >= InputConstants.KEY_1 && key <= InputConstants.KEY_9) {
-			return key - InputConstants.KEY_1;
+	/**
+	 * 聊天框里按下的键命中了哪个槽位快捷键。
+	 *
+	 * <p>绑定在「热键」页里逐个改（默认 Ctrl + 1…0）。</p>
+	 */
+	private static int chatSlotForKey(KeyEvent event) {
+		List<ConfigHotkey> binds = Hotkeys.CHAT_SLOT_KEYS;
+		int key = event.input();
+
+		for (int slot = 0; slot < binds.size(); slot++) {
+			if (HotkeyBinds.matchesChatBind(binds.get(slot), key)) {
+				return slot;
+			}
 		}
-		if (key == InputConstants.KEY_0) {
-			return 9;
-		}
+
 		return -1;
 	}
 }

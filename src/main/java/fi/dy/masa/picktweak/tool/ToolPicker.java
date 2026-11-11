@@ -1,8 +1,9 @@
 package fi.dy.masa.picktweak.tool;
 
 import fi.dy.masa.picktweak.config.Configs;
-import fi.dy.masa.picktweak.config.Configs;
 import fi.dy.masa.picktweak.inv.InventoryManager;
+import fi.dy.masa.picktweak.pick.ClientPicker;
+import fi.dy.masa.picktweak.pick.ClientRaycast;
 import fi.dy.masa.picktweak.util.PbpText;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -110,13 +111,23 @@ public final class ToolPicker {
 		if (level == null || player == null || !config.enabled) {
 			return;
 		}
-		HitResult hit = mc.hitResult;
+
+		// 原版的 hitResult 受交互距离限制，这里自己按配置的距离找目标
+		double range = ClientPicker.effectiveRange(config.range, false, config.creativeRange, player);
+		HitResult hit = ClientRaycast.resolveHit(mc, range);
+
 		if (hit == null) {
 			return;
 		}
 		if (hit.getType() == HitResult.Type.BLOCK && hit instanceof BlockHitResult blockHit) {
+			if (!ClientRaycast.withinRange(mc, hit, range)) {
+				return;
+			}
 			handleBlock(mc, level, player, config, blockHit.getBlockPos());
 		} else if (hit.getType() == HitResult.Type.ENTITY && hit instanceof EntityHitResult entityHit) {
+			if (!ClientRaycast.withinRange(mc, hit, range)) {
+				return;
+			}
 			handleEntity(mc, level, player, config, entityHit.getEntity());
 		}
 	}

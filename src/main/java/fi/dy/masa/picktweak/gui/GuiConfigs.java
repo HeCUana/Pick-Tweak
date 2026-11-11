@@ -153,6 +153,7 @@ public class GuiConfigs extends GuiConfigsBase implements IConfigGuiAllTab {
 						Configs.BLOCK_PICKER_SHOW_FEEDBACK,
 						Configs.BLOCK_PICKER_COPY_NBT,
 						Configs.BLOCK_PICKER_SHOW_COPIED_NBT,
+						Configs.BLOCK_PICKER_AXIOM_MODE,
 						Configs.BLOCK_ENTITY_NBT_BLACKLIST,
 						Configs.STATE_PROPERTY_BLACKLIST,
 						Configs.ENTITY_NBT_BLACKLIST
@@ -209,12 +210,20 @@ public class GuiConfigs extends GuiConfigsBase implements IConfigGuiAllTab {
 						Configs.CREATIVE_INJECT_WEAPONS,
 						Configs.CREATIVE_TAB
 				);
-				case HOTKEYS -> List.of(
-						Hotkeys.PICK_ID,
-						Hotkeys.PICK_TOOL,
-						Hotkeys.OPEN_CONFIG
-				);
+				case HOTKEYS -> hotkeyConfigs();
 			};
+		}
+
+		/** 热键页：全部快捷方式都在这里改。 */
+		private static List<IConfigBase> hotkeyConfigs() {
+			List<IConfigBase> list = new ArrayList<>();
+			list.add(Hotkeys.PICK_WITH_NBT);
+			list.add(Hotkeys.PICK_WITH_STATE);
+			list.add(Hotkeys.PICK_ID);
+			list.add(Hotkeys.PICK_TOOL);
+			list.add(Hotkeys.OPEN_CONFIG);
+			list.addAll(Hotkeys.CHAT_SLOT_KEYS);
+			return list;
 		}
 	}
 }

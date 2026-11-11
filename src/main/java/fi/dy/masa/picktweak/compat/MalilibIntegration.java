@@ -1,6 +1,7 @@
 package fi.dy.masa.picktweak.compat;
 
 import fi.dy.masa.malilib.config.ConfigManager;
+import fi.dy.masa.malilib.hotkeys.IHotkey;
 import fi.dy.masa.malilib.hotkeys.IHotkeyCallback;
 import fi.dy.masa.malilib.hotkeys.IKeybindManager;
 import fi.dy.masa.malilib.hotkeys.IKeybindProvider;
@@ -52,9 +53,9 @@ public final class MalilibIntegration {
 	private static class HotkeyProvider implements IKeybindProvider {
 		@Override
 		public void addKeysToMap(IKeybindManager manager) {
-			manager.addKeybindToMap(Hotkeys.PICK_ID.getKeybind());
-			manager.addKeybindToMap(Hotkeys.PICK_TOOL.getKeybind());
-			manager.addKeybindToMap(Hotkeys.OPEN_CONFIG.getKeybind());
+			for (IHotkey hotkey : Hotkeys.ALL_HOTKEYS) {
+				manager.addKeybindToMap(hotkey.getKeybind());
+			}
 		}
 
 		@Override

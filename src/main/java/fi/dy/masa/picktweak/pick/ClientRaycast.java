@@ -27,7 +27,7 @@ public final class ClientRaycast {
 	/** 按给定距离射线，返回命中的方块或实体（没命中时类型为 MISS）。 */
 	public static HitResult pick(Minecraft mc, double range) {
 		Entity camera = mc.getCameraEntity();
-		if (camera == null || mc.level == null) {
+		if (camera == null || mc.level == null || range <= 0.0D) {
 			return null;
 		}
 		float partialTicks = 1.0F;
@@ -35,16 +35,49 @@ public final class ClientRaycast {
 		Vec3 direction = camera.getViewVector(partialTicks);
 		Vec3 to = from.add(direction.scale(range));
 
-		HitResult blockHit = camera.pick(range, partialTicks, false);
-		double blockDistanceSq = blockHit.getLocation().distanceToSqr(from);
+		try {
+			HitResult blockHit = camera.pick(range, partialTicks, false);
+			double blockDistanceSq = blockHit.getLocation().distanceToSqr(from);
 
-		AABB box = camera.getBoundingBox().expandTowards(direction.scale(range)).inflate(1.0D, 1.0D, 1.0D);
-		EntityHitResult entityHit = ProjectileUtil.getEntityHitResult(
-				camera, from, to, box, EntitySelector.CAN_BE_PICKED, range * range);
-		if (entityHit != null && entityHit.getLocation().distanceToSqr(from) < blockDistanceSq) {
-			return entityHit;
+			AABB box = camera.getBoundingBox().expandTowards(direction.scale(range)).inflate(1.0D, 1.0D, 1.0D);
+			EntityHitResult entityHit = ProjectileUtil.getEntityHitResult(
+					camera, from, to, box, EntitySelector.CAN_BE_PICKED, range * range);
+			if (entityHit != null && entityHit.getLocation().distanceToSqr(from) < blockDistanceSq) {
+				return entityHit;
+			}
+			return blockHit;
+		} catch (Throwable t) {
+			// 世界正在加载 / 区块卸载时射线可能抛异常，放弃这次拾取即可
+			return null;
 		}
-		return blockHit;
+	}
+
+	/**
+	 * 找出这次要操作的目标。
+	 *
+	 * <p>原版每个 tick 都会算一次 {@code hitResult}（交互距离内），
+	 * 能直接用就复用，省掉一次重复的方块 + 实体射线；
+	 * 只有原版打空（目标在交互距离之外）时才自己做远距离射线。</p>
+	 */
+	public static HitResult resolveHit(Minecraft mc, double range) {
+		HitResult vanilla = mc.hitResult;
+
+		if (vanilla != null && vanilla.getType() != HitResult.Type.MISS && withinRange(mc, vanilla, range)) {
+			return vanilla;
+		}
+
+		return pick(mc, range);
+	}
+
+	/** 命中点是否在范围内（按摄像机位置算）。 */
+	public static boolean withinRange(Minecraft mc, HitResult hit, double range) {
+		Entity camera = mc.getCameraEntity();
+
+		if (camera == null) {
+			return false;
+		}
+
+		return hit.getLocation().distanceToSqr(camera.getEyePosition(1.0F)) <= range * range;
 	}
 
 	/**

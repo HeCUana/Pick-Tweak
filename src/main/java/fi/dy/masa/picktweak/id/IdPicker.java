@@ -1,7 +1,6 @@
 package fi.dy.masa.picktweak.id;
 
 import fi.dy.masa.picktweak.config.Configs;
-import fi.dy.masa.picktweak.config.Configs;
 import fi.dy.masa.picktweak.pick.BlockPicker;
 import fi.dy.masa.picktweak.pick.ClientPicker;
 import fi.dy.masa.picktweak.pick.ClientRaycast;
@@ -54,18 +53,22 @@ public final class IdPicker {
 		if (level == null || player == null || !config.enabled) {
 			return;
 		}
-		HitResult hit = mc.hitResult;
-		if (hit == null) {
-			return;
-		}
 
 		boolean ctrl = mc.hasControlDown();
 		String text = null;
 
+		// 原版的 hitResult 受交互距离限制，这里自己按配置的距离找目标
+		double blockRange = ClientPicker.effectiveRange(config.range, config.useInteractionRange, config.creativeRange, player);
+		double entityRange = ClientPicker.effectiveRange(config.entityRange, config.useInteractionRange, config.creativeRange, player);
+		HitResult hit = ClientRaycast.resolveHit(mc, Math.max(blockRange, entityRange));
+
+		if (hit == null) {
+			return;
+		}
+
 		if (hit.getType() == HitResult.Type.BLOCK && config.pickBlocks) {
 			BlockHitResult blockHit = (BlockHitResult) hit;
-			double range = ClientPicker.effectiveRange(config.range, config.useInteractionRange, config.creativeRange, player);
-			if (!ClientPicker.inBlockRange(player, blockHit.getBlockPos(), range)) {
+			if (!ClientRaycast.withinRange(mc, hit, blockRange)) {
 				return;
 			}
 			BlockState state = level.getBlockState(blockHit.getBlockPos());
@@ -73,8 +76,7 @@ public final class IdPicker {
 					: blockIdText(state, config);
 		} else if (hit.getType() == HitResult.Type.ENTITY && config.pickEntities) {
 			EntityHitResult entityHit = (EntityHitResult) hit;
-			double range = ClientPicker.effectiveRange(config.entityRange, config.useInteractionRange, config.creativeRange, player);
-			if (!ClientPicker.inEntityRange(player, entityHit.getEntity(), range)) {
+			if (!ClientRaycast.withinRange(mc, hit, entityRange)) {
 				return;
 			}
 			Entity entity = entityHit.getEntity();

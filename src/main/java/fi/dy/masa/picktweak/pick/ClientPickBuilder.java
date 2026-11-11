@@ -1,5 +1,6 @@
 package fi.dy.masa.picktweak.pick;
 
+import fi.dy.masa.picktweak.util.BlockItems;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
@@ -43,9 +44,20 @@ public final class ClientPickBuilder {
 	}
 
 	/** 构造方块物品。 */
-	public static ItemStack buildBlockItem(ClientLevel level, BlockPos pos, boolean includeData, boolean includeState) {
+	public static ItemStack buildBlockItem(ClientLevel level, BlockPos pos, boolean includeData, boolean includeState,
+			boolean pickFluids) {
 		BlockState state = level.getBlockState(pos);
-		ItemStack stack = state.getCloneItemStack(level, pos, false);
+		ItemStack stack = ItemStack.EMPTY;
+
+		// 流体（和粉雪）拾取成装满的桶
+		if (pickFluids) {
+			stack = BlockItems.fluidBucket(state);
+		}
+
+		if (stack.isEmpty()) {
+			stack = state.getCloneItemStack(level, pos, false);
+		}
+
 		if (stack.isEmpty()) {
 			return ItemStack.EMPTY;
 		}

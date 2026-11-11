@@ -41,6 +41,8 @@ public final class PbpServerConfig {
 	public boolean giveInSurvival = true;
 	/** 拾取生物时优先给出头颅（僵尸 -> 僵尸头）而不是刷怪蛋。 */
 	public boolean preferEntityHeads = true;
+	/** 拾取流体（和粉雪）时发放装满的桶。 */
+	public boolean pickFluids = true;
 	/** 拾取太阳时发放的物品（默认是「光源方块」）。 */
 	public String sunItem = "minecraft:light";
 	/** 拾取月亮时发放的物品。 */
