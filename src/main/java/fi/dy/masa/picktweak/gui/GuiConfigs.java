@@ -8,7 +8,7 @@ import fi.dy.masa.malilib.gui.button.IButtonActionListener;
 import fi.dy.masa.malilib.gui.interfaces.IConfigGuiAllTab;
 import fi.dy.masa.malilib.util.StringUtils;
 import fi.dy.masa.picktweak.Reference;
-import fi.dy.masa.picktweak.config.Configs;
+import fi.dy.masa.picktweak.config.MaliOptions;
 import fi.dy.masa.picktweak.config.Hotkeys;
 import net.minecraft.client.gui.screens.Screen;
 
@@ -77,7 +77,7 @@ public class GuiConfigs extends GuiConfigsBase implements IConfigGuiAllTab {
 
 	@Override
 	public List<ConfigOptionWrapper> getAllConfigs() {
-		List<IConfigBase> all = new ArrayList<>(Configs.ALL_CONFIGS);
+		List<IConfigBase> all = new ArrayList<>(MaliOptions.ALL_CONFIGS);
 		return ConfigOptionWrapper.createFor(all);
 	}
 
@@ -98,7 +98,7 @@ public class GuiConfigs extends GuiConfigsBase implements IConfigGuiAllTab {
 	@Override
 	protected void onSettingsChanged() {
 		super.onSettingsChanged();
-		Configs.refresh();
+		MaliOptions.refresh();
 	}
 
 	/** 切换标签页。 */
@@ -137,78 +137,77 @@ public class GuiConfigs extends GuiConfigsBase implements IConfigGuiAllTab {
 
 		public List<IConfigBase> getConfigs() {
 			return switch (this) {
-				case ALL -> new ArrayList<>(Configs.ALL_CONFIGS);
+				case ALL -> new ArrayList<>(MaliOptions.ALL_CONFIGS);
 				case BLOCK_PICKER -> List.of(
-						Configs.BLOCK_PICKER_ENABLED,
-						Configs.BLOCK_PICKER_RANGE,
-						Configs.BLOCK_PICKER_ENTITY_RANGE,
-						Configs.BLOCK_PICKER_CREATIVE_RANGE,
-						Configs.BLOCK_PICKER_USE_INTERACTION_RANGE,
-						Configs.BLOCK_PICKER_PICK_BLOCKS,
-						Configs.BLOCK_PICKER_PICK_ENTITIES,
-						Configs.BLOCK_PICKER_PICK_FLUIDS,
-						Configs.BLOCK_PICKER_PICK_LIGHT_SOURCES,
-						Configs.BLOCK_PICKER_PREFER_ENTITY_HEADS,
-						Configs.BLOCK_PICKER_TAKE_OVER_LITEMATICA,
-						Configs.BLOCK_PICKER_SHOW_FEEDBACK,
-						Configs.BLOCK_PICKER_COPY_NBT,
-						Configs.BLOCK_PICKER_SHOW_COPIED_NBT,
-						Configs.BLOCK_PICKER_AXIOM_MODE,
-						Configs.BLOCK_ENTITY_NBT_BLACKLIST,
-						Configs.STATE_PROPERTY_BLACKLIST,
-						Configs.ENTITY_NBT_BLACKLIST
+						MaliOptions.BLOCK_PICKER_ENABLED,
+						MaliOptions.BLOCK_PICKER_RANGE,
+						MaliOptions.BLOCK_PICKER_ENTITY_RANGE,
+						MaliOptions.BLOCK_PICKER_CREATIVE_RANGE,
+						MaliOptions.BLOCK_PICKER_USE_INTERACTION_RANGE,
+						MaliOptions.BLOCK_PICKER_PICK_BLOCKS,
+						MaliOptions.BLOCK_PICKER_PICK_ENTITIES,
+						MaliOptions.BLOCK_PICKER_PICK_FLUIDS,
+						MaliOptions.BLOCK_PICKER_PICK_LIGHT_SOURCES,
+						MaliOptions.BLOCK_PICKER_PREFER_ENTITY_HEADS,
+						MaliOptions.BLOCK_PICKER_TAKE_OVER_LITEMATICA,
+						MaliOptions.BLOCK_PICKER_SHOW_FEEDBACK,
+						MaliOptions.BLOCK_PICKER_COPY_NBT,
+						MaliOptions.BLOCK_PICKER_SHOW_COPIED_NBT,
+						MaliOptions.BLOCK_PICKER_AXIOM_MODE,
+						MaliOptions.BLOCK_ENTITY_NBT_BLACKLIST,
+						MaliOptions.STATE_PROPERTY_BLACKLIST,
+						MaliOptions.ENTITY_NBT_BLACKLIST
 				);
 				case ID_PICKER -> List.of(
-						Configs.ID_PICKER_ENABLED,
-						Configs.ID_PICKER_RANGE,
-						Configs.ID_PICKER_ENTITY_RANGE,
-						Configs.ID_PICKER_CREATIVE_RANGE,
-						Configs.ID_PICKER_USE_INTERACTION_RANGE,
-						Configs.ID_PICKER_INCLUDE_NAMESPACE,
-						Configs.ID_PICKER_INCLUDE_STATE_PROPERTIES,
-						Configs.ID_PICKER_COPY_TO_CLIPBOARD,
-						Configs.ID_PICKER_INCLUDE_NBT,
-						Configs.ID_PICKER_PRETTY_NBT,
-						Configs.ID_PICKER_CHAT_SHORTCUT,
-						Configs.ID_PICKER_ITEM_TO_BLOCK_ID,
-						Configs.ID_PICKER_PICK_BLOCKS,
-						Configs.ID_PICKER_PICK_ENTITIES,
-						Configs.ID_PICKER_PICK_ITEMS,
-						Configs.ID_NBT_BLACKLIST,
-						Configs.ID_STATE_PROPERTY_BLACKLIST
+						MaliOptions.ID_PICKER_ENABLED,
+						MaliOptions.ID_PICKER_RANGE,
+						MaliOptions.ID_PICKER_ENTITY_RANGE,
+						MaliOptions.ID_PICKER_CREATIVE_RANGE,
+						MaliOptions.ID_PICKER_USE_INTERACTION_RANGE,
+						MaliOptions.ID_PICKER_INCLUDE_NAMESPACE,
+						MaliOptions.ID_PICKER_INCLUDE_STATE_PROPERTIES,
+						MaliOptions.ID_PICKER_COPY_TO_CLIPBOARD,
+						MaliOptions.ID_PICKER_INCLUDE_NBT,
+						MaliOptions.ID_PICKER_PRETTY_NBT,
+						MaliOptions.ID_PICKER_CHAT_SHORTCUT,
+						MaliOptions.ID_PICKER_ITEM_TO_BLOCK_ID,
+						MaliOptions.ID_PICKER_PICK_BLOCKS,
+						MaliOptions.ID_PICKER_PICK_ENTITIES,
+						MaliOptions.ID_PICKER_PICK_ITEMS,
+						MaliOptions.ID_NBT_BLACKLIST,
+						MaliOptions.ID_STATE_PROPERTY_BLACKLIST
 				);
 				case TOOL_PICKER -> List.of(
-						Configs.TOOL_PICKER_ENABLED,
-						Configs.TOOL_PICKER_RANGE,
-						Configs.TOOL_PICKER_CREATIVE_RANGE,
-						Configs.TOOL_PICKER_DURABILITY_THRESHOLD,
-						Configs.TOOL_PICKER_PICK_FLUID,
-						Configs.TOOL_PICKER_BAMBOO_PREFERS_SWORD,
-						Configs.TOOL_PICKER_PREFER_SILK_TOUCH,
-						Configs.TOOL_PICKER_PREFER_FORTUNE,
-						Configs.TOOL_PICKER_PREFER_EFFICIENCY,
-						Configs.TOOL_PICKER_ALLOW_INCOMPATIBLE,
-						Configs.TOOL_PICKER_GENERATE_IN_CREATIVE,
-						Configs.TOOL_SPECS,
-						Configs.WEAPON_PREFERENCES
+						MaliOptions.TOOL_PICKER_ENABLED,
+						MaliOptions.TOOL_PICKER_RANGE,
+						MaliOptions.TOOL_PICKER_CREATIVE_RANGE,
+						MaliOptions.TOOL_PICKER_DURABILITY_THRESHOLD,
+						MaliOptions.TOOL_PICKER_PICK_FLUID,
+						MaliOptions.TOOL_PICKER_BAMBOO_PREFERS_SWORD,
+						MaliOptions.TOOL_PICKER_PREFER_SILK_TOUCH,
+						MaliOptions.TOOL_PICKER_PREFER_FORTUNE,
+						MaliOptions.TOOL_PICKER_PREFER_EFFICIENCY,
+						MaliOptions.TOOL_PICKER_ALLOW_INCOMPATIBLE,
+						MaliOptions.TOOL_PICKER_GENERATE_IN_CREATIVE,
+						MaliOptions.TOOL_SPECS,
+						MaliOptions.WEAPON_PREFERENCES
 				);
 				case INVENTORY -> List.of(
-						Configs.SEARCH_CONTAINERS,
-						Configs.KEEP_ORIGINAL_SLOT,
-						Configs.LOCK_HOTBAR_SLOT_1,
-						Configs.LOCK_HOTBAR_SLOT_2,
-						Configs.LOCK_HOTBAR_SLOT_3,
-						Configs.LOCK_HOTBAR_SLOT_4,
-						Configs.LOCK_HOTBAR_SLOT_5,
-						Configs.LOCK_HOTBAR_SLOT_6,
-						Configs.LOCK_HOTBAR_SLOT_7,
-						Configs.LOCK_HOTBAR_SLOT_8,
-						Configs.LOCK_HOTBAR_SLOT_9
+						MaliOptions.SEARCH_CONTAINERS,
+						MaliOptions.LOCK_HOTBAR_SLOT_1,
+						MaliOptions.LOCK_HOTBAR_SLOT_2,
+						MaliOptions.LOCK_HOTBAR_SLOT_3,
+						MaliOptions.LOCK_HOTBAR_SLOT_4,
+						MaliOptions.LOCK_HOTBAR_SLOT_5,
+						MaliOptions.LOCK_HOTBAR_SLOT_6,
+						MaliOptions.LOCK_HOTBAR_SLOT_7,
+						MaliOptions.LOCK_HOTBAR_SLOT_8,
+						MaliOptions.LOCK_HOTBAR_SLOT_9
 				);
 				case CREATIVE -> List.of(
-						Configs.CREATIVE_INJECT_TOOLS,
-						Configs.CREATIVE_INJECT_WEAPONS,
-						Configs.CREATIVE_TAB
+						MaliOptions.CREATIVE_INJECT_TOOLS,
+						MaliOptions.CREATIVE_INJECT_WEAPONS,
+						MaliOptions.CREATIVE_TAB
 				);
 				case HOTKEYS -> hotkeyConfigs();
 			};

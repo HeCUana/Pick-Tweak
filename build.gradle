@@ -21,10 +21,8 @@ repositories {
 	}
 }
 
-loom {
-	// 客户端 + 服务端：服务端负责权威拾取，客户端负责界面与热键
-	accessWidenerPath = file('src/main/resources/picktweak.accesswidener')
-}
+// 说明：本项目目前不需要 access widener（用 mixin 注入原版中键拾取即可），
+// 所以不声明 accessWidenerPath，避免空 AW 文件带来的维护噪音。
 
 dependencies {
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"

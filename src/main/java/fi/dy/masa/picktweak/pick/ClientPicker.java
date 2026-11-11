@@ -2,7 +2,6 @@ package fi.dy.masa.picktweak.pick;
 
 import fi.dy.masa.picktweak.config.Configs;
 import fi.dy.masa.picktweak.config.HotkeyBinds;
-import fi.dy.masa.picktweak.config.Hotkeys;
 import fi.dy.masa.picktweak.inv.InventoryManager;
 import fi.dy.masa.picktweak.net.PbpPayloads;
 import fi.dy.masa.picktweak.util.NbtFormatter;
@@ -55,8 +54,8 @@ public final class ClientPicker {
 		}
 
 		// 修饰键走 MaLiLib 热键，绑定在「热键」页里可以改
-		boolean ctrl = HotkeyBinds.isPickModifierActive(Hotkeys.PICK_WITH_NBT);
-		boolean alt = HotkeyBinds.isPickModifierActive(Hotkeys.PICK_WITH_STATE);
+		boolean ctrl = HotkeyBinds.isModifierActive(HotkeyBinds.Modifier.NBT);
+		boolean alt = HotkeyBinds.isModifierActive(HotkeyBinds.Modifier.STATE);
 
 		// 服务端装了 PBP 就走权威流程（能真正发放物品）；没装则客户端本地算一份。
 		boolean serverSupport = ClientPlayNetworking.canSend(PbpPayloads.PickBlock.TYPE);

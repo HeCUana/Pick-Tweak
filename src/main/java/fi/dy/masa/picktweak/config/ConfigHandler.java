@@ -33,13 +33,13 @@ public class ConfigHandler implements IConfigHandler {
 			try {
 				String json = Files.readString(path, StandardCharsets.UTF_8);
 				JsonObject root = JsonParser.parseString(json).getAsJsonObject();
-				ConfigUtils.readConfigBase(root, Reference.MOD_ID, Configs.ALL_CONFIGS);
+				ConfigUtils.readConfigBase(root, Reference.MOD_ID, MaliOptions.ALL_CONFIGS);
 				ConfigUtils.readHotkeys(root, Reference.MOD_ID, Hotkeys.ALL_HOTKEYS);
 			} catch (Exception e) {
 				System.err.println("[Pick Tweak] 读取配置失败，使用默认值：" + e.getMessage());
 			}
 		}
-		Configs.refresh();
+		MaliOptions.refresh();
 	}
 
 	@Override
@@ -48,18 +48,18 @@ public class ConfigHandler implements IConfigHandler {
 		try {
 			Files.createDirectories(path.getParent());
 			JsonObject root = new JsonObject();
-			ConfigUtils.writeConfigBase(root, Reference.MOD_ID, Configs.ALL_CONFIGS);
+			ConfigUtils.writeConfigBase(root, Reference.MOD_ID, MaliOptions.ALL_CONFIGS);
 			ConfigUtils.writeHotkeys(root, Reference.MOD_ID, Hotkeys.ALL_HOTKEYS);
 			Files.writeString(path, GSON.toJson(root), StandardCharsets.UTF_8);
 		} catch (IOException e) {
 			System.err.println("[Pick Tweak] 保存配置失败：" + e.getMessage());
 		}
-		Configs.refresh();
+		MaliOptions.refresh();
 	}
 
 	@Override
 	public void onConfigsChanged() {
-		Configs.refresh();
+		MaliOptions.refresh();
 	}
 
 	private static Path configPath() {

@@ -39,11 +39,13 @@ public final class PbpCommands {
 	public static void register(CommandDispatcher<FabricClientCommandSource> dispatcher, CommandBuildContext context) {
 		dispatcher.register(literal("pbp")
 				.then(literal("reload").executes(ctx -> {
-					fi.dy.masa.picktweak.net.PbpOverrides.reload();
+					// 服务端装了本模组时由服务端重载（成功消息由服务端发）；否则本地重载。
 					if (ClientPlayNetworking.canSend(PbpPayloads.Reload.TYPE)) {
 						ClientPlayNetworking.send(new PbpPayloads.Reload());
+					} else {
+						fi.dy.masa.picktweak.net.PbpOverrides.reload();
+						ctx.getSource().sendFeedback(Component.translatable("picktweak.command.reload_success"));
 					}
-					ctx.getSource().sendFeedback(Component.translatable("picktweak.command.reload_success"));
 					return 1;
 				}))
 				.then(literal("give")

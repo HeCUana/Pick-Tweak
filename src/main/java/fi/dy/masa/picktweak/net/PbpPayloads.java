@@ -1,5 +1,6 @@
 package fi.dy.masa.picktweak.net;
 
+import fi.dy.masa.picktweak.Reference;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -12,14 +13,17 @@ import net.minecraft.resources.Identifier;
  *
  * <p>服务端安装了本模组时，客户端的拾取请求会走这里，由服务端权威地计算并发放物品；
  * 服务端没装时客户端会自动回退到原版拾取流程。</p>
+ *
+ * <p>通道 ID 使用 {@code picktweak} 命名空间，注册集中在 {@link PbpServerNetworking}。
+ * record 的字段与构造器由客户端直接 new，保持稳定。</p>
  */
 public final class PbpPayloads {
 
-	public static final Identifier PICK_BLOCK_ID = Identifier.withDefaultNamespace("pickblockpro_pick_block");
-	public static final Identifier PICK_ENTITY_ID = Identifier.withDefaultNamespace("pickblockpro_pick_entity");
-	public static final Identifier GIVE_TOOL_ID = Identifier.withDefaultNamespace("pickblockpro_give_tool");
-	public static final Identifier PICK_CELESTIAL_ID = Identifier.withDefaultNamespace("pickblockpro_pick_celestial");
-	public static final Identifier RELOAD_ID = Identifier.withDefaultNamespace("pickblockpro_reload");
+	public static final Identifier PICK_BLOCK_ID = Identifier.fromNamespaceAndPath(Reference.MOD_ID, "pick_block");
+	public static final Identifier PICK_ENTITY_ID = Identifier.fromNamespaceAndPath(Reference.MOD_ID, "pick_entity");
+	public static final Identifier GIVE_TOOL_ID = Identifier.fromNamespaceAndPath(Reference.MOD_ID, "give_tool");
+	public static final Identifier PICK_CELESTIAL_ID = Identifier.fromNamespaceAndPath(Reference.MOD_ID, "pick_celestial");
+	public static final Identifier RELOAD_ID = Identifier.fromNamespaceAndPath(Reference.MOD_ID, "reload");
 
 	/** 拾取方块。 */
 	public record PickBlock(BlockPos pos, boolean includeData, boolean includeState) implements CustomPacketPayload {

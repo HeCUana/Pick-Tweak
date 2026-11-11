@@ -36,7 +36,8 @@ public final class ClientRaycast {
 		Vec3 to = from.add(direction.scale(range));
 
 		try {
-			HitResult blockHit = camera.pick(range, partialTicks, false);
+			// 包含流体：水 / 岩浆方块才能被瞄准拾取成桶
+			HitResult blockHit = camera.pick(range, partialTicks, true);
 			double blockDistanceSq = blockHit.getLocation().distanceToSqr(from);
 
 			AABB box = camera.getBoundingBox().expandTowards(direction.scale(range)).inflate(1.0D, 1.0D, 1.0D);
@@ -55,17 +56,11 @@ public final class ClientRaycast {
 	/**
 	 * 找出这次要操作的目标。
 	 *
-	 * <p>原版每个 tick 都会算一次 {@code hitResult}（交互距离内），
-	 * 能直接用就复用，省掉一次重复的方块 + 实体射线；
-	 * 只有原版打空（目标在交互距离之外）时才自己做远距离射线。</p>
+	 * <p>不再复用原版的 {@code hitResult}：原版射线会跳过流体，而且是按交互距离、
+	 * 上一 tick 的状态算的；复用会导致隔着水面时拾取到水后面的方块。
+	 * 拾取本身是低频操作，这里每次按配置距离重新射线即可。</p>
 	 */
 	public static HitResult resolveHit(Minecraft mc, double range) {
-		HitResult vanilla = mc.hitResult;
-
-		if (vanilla != null && vanilla.getType() != HitResult.Type.MISS && withinRange(mc, vanilla, range)) {
-			return vanilla;
-		}
-
 		return pick(mc, range);
 	}
 

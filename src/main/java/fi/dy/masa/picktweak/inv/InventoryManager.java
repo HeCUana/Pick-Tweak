@@ -79,8 +79,7 @@ public final class InventoryManager {
 
 		int exact = inventory.findSlotMatchingItem(stack);
 		if (exact >= 0) {
-			selectOrSwap(exact);
-			return true;
+			return selectOrSwap(exact);
 		}
 		if (player.hasInfiniteMaterials()) {
 			return giveCreative(stack);
@@ -98,10 +97,11 @@ public final class InventoryManager {
 		Inventory inventory = player.getInventory();
 		int target = player.getInventory().getSelectedSlot();
 		if (isLocked(target)) {
+			// 锁定的槽位绝不覆盖；没有空闲的未锁定槽位就不放
 			target = findFreeHotbarSlot();
-		}
-		if (target < 0) {
-			target = player.getInventory().getSelectedSlot();
+			if (target < 0) {
+				return false;
+			}
 		}
 		ItemStack copy = stack.copy();
 		copy.setCount(1);
@@ -156,33 +156,40 @@ public final class InventoryManager {
 		return stack.get(DataComponents.CONTAINER) != null || stack.get(DataComponents.BUNDLE_CONTENTS) != null;
 	}
 
-	/** 选中某个槽位；若在背包里则先交换到快捷栏。 */
-	public static void selectOrSwap(int inventoryIndex) {
+	/**
+	 * 选中某个槽位；若在背包里则先用一次 SWAP 容器点击交换到当前快捷栏槽位。
+	 *
+	 * @return 是否成功选中 / 交换（目标槽位被锁定或不可交换时返回 false）
+	 */
+	public static boolean selectOrSwap(int inventoryIndex) {
 		Minecraft mc = Minecraft.getInstance();
 		LocalPlayer player = mc.player;
 		if (player == null) {
-			return;
+			return false;
 		}
 		Inventory inventory = player.getInventory();
-		if (inventoryIndex >= 0 && inventoryIndex < 9) {
-			if (!isLocked(inventoryIndex)) {
-				selectSlot(inventoryIndex);
+		if (inventoryIndex >= 0 && inventoryIndex < Inventory.SELECTION_SIZE) {
+			if (isLocked(inventoryIndex)) {
+				return false;
 			}
-			return;
+			selectSlot(inventoryIndex);
+			return true;
 		}
-		if (!swapIntoHotbar(inventoryIndex)) {
-			return;
+		// 只处理主背包 9..35；盔甲 / 副手槽不参与交换
+		if (inventoryIndex < Inventory.SELECTION_SIZE || inventoryIndex >= Inventory.INVENTORY_SIZE) {
+			return false;
 		}
-		int hotbarSlot = player.getInventory().getSelectedSlot();
-		if (!isLocked(hotbarSlot)) {
-			selectSlot(hotbarSlot);
-		}
+		return swapIntoHotbar(inventoryIndex);
 	}
 
 	/**
-	 * 把背包中的某个槽位与当前快捷栏槽位交换，全程通过容器点击包与服务器同步。
+	 * 把主背包（9..35）里的某个槽位与当前快捷栏槽位交换。
 	 *
-	 * @return 是否交换成功
+	 * <p>用一次 {@link ContainerInput#SWAP} 容器点击完成：槽位是背包槽在菜单里的
+	 * slotId，button 是目标快捷栏下标（0..8）。这样不需要光标参与，
+	 * 也就不会出现「三个 PICKUP 点击中途失败、物品留在光标上」的客户端不同步。</p>
+	 *
+	 * @return 是否成功发出交换请求
 	 */
 	public static boolean swapIntoHotbar(int inventoryIndex) {
 		Minecraft mc = Minecraft.getInstance();
@@ -191,52 +198,27 @@ public final class InventoryManager {
 			return false;
 		}
 		Inventory inventory = player.getInventory();
-		if (inventoryIndex < 0 || inventoryIndex >= inventory.getContainerSize()) {
+		if (inventoryIndex < Inventory.SELECTION_SIZE || inventoryIndex >= Inventory.INVENTORY_SIZE) {
 			return false;
 		}
 		if (inventory.getItem(inventoryIndex).isEmpty()) {
 			return false;
 		}
-		int current = inventory.getSelectedSlot();
-		if (isLocked(current)) {
+		int hotbarSlot = inventory.getSelectedSlot();
+		if (isLocked(hotbarSlot)) {
 			return false;
 		}
 		AbstractContainerMenu menu = player.containerMenu;
+		// 光标上有物品时放弃，避免把手里的东西塞进背包
+		if (!menu.getCarried().isEmpty()) {
+			return false;
+		}
 		int sourceSlot = findMenuSlot(menu, inventory, inventoryIndex);
-		int targetSlot = findMenuSlot(menu, inventory, current);
-		if (sourceSlot < 0 || targetSlot < 0) {
-			return false;
-		}
-
-		int originalSelected = current;
-		// 1. 拿起源槽位的物品
-		if (!click(menu, sourceSlot)) {
-			return false;
-		}
-		// 2. 放到快捷栏（快捷栏有物品时两者交换，光标上会拿到原来的物品）
-		if (!click(menu, targetSlot)) {
-			return false;
-		}
-		// 3. 把光标上的物品（原来的快捷栏物品）放回源槽位
-		if (!player.containerMenu.getCarried().isEmpty()) {
-			click(menu, sourceSlot);
-		}
-
-		if (Configs.inventory.keepOriginalSlot && !isLocked(originalSelected)) {
-			selectSlot(originalSelected);
-		}
-		return true;
-	}
-
-	/** 在容器的槽位上模拟一次左键点击（拾取 / 放下）。 */
-	private static boolean click(AbstractContainerMenu menu, int menuSlot) {
-		Minecraft mc = Minecraft.getInstance();
-		LocalPlayer player = mc.player;
-		if (player == null || mc.gameMode == null) {
+		if (sourceSlot < 0) {
 			return false;
 		}
 		try {
-			mc.gameMode.handleContainerInput(menu.containerId, menuSlot, 0, ContainerInput.PICKUP, player);
+			mc.gameMode.handleContainerInput(menu.containerId, sourceSlot, hotbarSlot, ContainerInput.SWAP, player);
 		} catch (Exception e) {
 			return false;
 		}

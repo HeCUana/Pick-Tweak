@@ -4,6 +4,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mojang.logging.LogUtils;
+import fi.dy.masa.picktweak.Reference;
 import fi.dy.masa.picktweak.util.BlockItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
@@ -33,8 +34,11 @@ import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.level.storage.TagValueOutput;
 import org.slf4j.Logger;
 
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 服务端拾取服务：接收客户端的拾取请求，权威地算出物品并发放给玩家。
@@ -43,11 +47,76 @@ public final class ServerPickService {
 
 	private static final Logger LOGGER = LogUtils.getLogger();
 
+	/** 每玩家令牌桶：限制单位时间内的拾取 / 发放 / 天体请求数。 */
+	private static final Map<UUID, TokenBucket> RATE_LIMIT = new ConcurrentHashMap<>();
+	/** 令牌桶条目数的清理阈值。 */
+	private static final int MAX_TRACKED_BUCKETS = 1024;
+	/** 令牌桶空闲多久后清理（纳秒）。 */
+	private static final long BUCKET_IDLE_NANOS = 300_000_000_000L;
+
 	private ServerPickService() {
+	}
+
+	/**
+	 * 每玩家令牌桶限流。
+	 *
+	 * @return false 表示超出速率，调用方应静默丢弃这次请求
+	 */
+	private static boolean allowRequest(ServerPlayer player) {
+		PbpServerConfig config = PbpServerConfig.get();
+		int rate = Math.max(1, Math.min(200, config.rateLimitPerSecond));
+		long now = System.nanoTime();
+
+		pruneBuckets(now);
+		return RATE_LIMIT.computeIfAbsent(player.getUUID(), id -> new TokenBucket(now)).tryConsume(now, rate);
+	}
+
+	private static void pruneBuckets(long now) {
+		if (RATE_LIMIT.size() <= MAX_TRACKED_BUCKETS) {
+			return;
+		}
+
+		RATE_LIMIT.entrySet().removeIf(entry -> entry.getValue().isIdle(now, BUCKET_IDLE_NANOS));
+	}
+
+	/** 简单令牌桶：容量等于每秒速率，允许最多 1 秒的突发。 */
+	private static final class TokenBucket {
+		private double tokens;
+		private long lastRefill;
+		private long lastUsed;
+
+		private TokenBucket(long now) {
+			// 初始只给 1 个令牌，避免登录瞬间被一波请求打爆
+			this.tokens = 1.0D;
+			this.lastRefill = now;
+			this.lastUsed = now;
+		}
+
+		private synchronized boolean tryConsume(long now, int rate) {
+			double elapsed = (now - this.lastRefill) / 1_000_000_000.0D;
+			this.tokens = Math.min(rate, this.tokens + elapsed * rate);
+			this.lastRefill = now;
+			this.lastUsed = now;
+
+			if (this.tokens < 1.0D) {
+				return false;
+			}
+
+			this.tokens -= 1.0D;
+			return true;
+		}
+
+		private synchronized boolean isIdle(long now, long idleNanos) {
+			return now - this.lastUsed > idleNanos;
+		}
 	}
 
 	/** 处理拾取方块的请求。 */
 	public static void handlePickBlock(ServerPlayer player, BlockPos pos, boolean includeData, boolean includeState) {
+		if (!allowRequest(player)) {
+			return;
+		}
+
 		ServerLevel level = player.level();
 		PbpServerConfig config = PbpServerConfig.get();
 		if (!level.isLoaded(pos)) {
@@ -86,6 +155,10 @@ public final class ServerPickService {
 
 	/** 处理拾取实体的请求。 */
 	public static void handlePickEntity(ServerPlayer player, int entityId, boolean includeData) {
+		if (!allowRequest(player)) {
+			return;
+		}
+
 		ServerLevel level = player.level();
 		PbpServerConfig config = PbpServerConfig.get();
 		Entity entity = level.getEntity(entityId);
@@ -178,24 +251,53 @@ public final class ServerPickService {
 	 * 所以由客户端判断视线方向，服务端按配置发放对应的物品。</p>
 	 */
 	public static void handlePickCelestial(ServerPlayer player, String kind) {
+		if (!allowRequest(player)) {
+			return;
+		}
+
 		PbpServerConfig config = PbpServerConfig.get();
-		String itemId = "moon".equalsIgnoreCase(kind) ? config.moonItem : config.sunItem;
+
+		if (!config.allowCelestial) {
+			return;
+		}
+
+		String normalized = kind == null ? "" : kind.trim().toLowerCase(Locale.ROOT);
+
+		// 只接受 sun / moon，非法 kind 静默丢弃
+		if (!"sun".equals(normalized) && !"moon".equals(normalized)) {
+			return;
+		}
+
+		String itemId = "moon".equals(normalized) ? config.moonItem : config.sunItem;
 		Identifier id = Identifier.tryParse(itemId);
 		Item item = id == null ? null : BuiltInRegistries.ITEM.getValue(id);
+
 		if (item == null) {
 			warn(player, "picktweak.command.generate_failed", itemId);
 			return;
 		}
+
 		give(player, new ItemStack(item));
 	}
 
 	/** 处理客户端请求发放工具 / 武器。 */
 	public static void handleGiveTool(ServerPlayer player, String request) {
+		if (!allowRequest(player)) {
+			return;
+		}
+
 		PbpServerConfig config = PbpServerConfig.get();
+
 		if (!config.allowClientGive) {
 			warn(player, "picktweak.message.give_denied");
 			return;
 		}
+
+		if (config.requireOpForGive && !PbpServerNetworking.isModerator(player)) {
+			warn(player, "picktweak.message.give_denied");
+			return;
+		}
+
 		try {
 			JsonObject json = JsonParser.parseString(request).getAsJsonObject();
 			String kind = json.has("kind") ? json.get("kind").getAsString() : "";
@@ -216,7 +318,7 @@ public final class ServerPickService {
 			applyEnchantments(player.level(), stack, json, config.maxEnchantLevel);
 			give(player, stack);
 		} catch (Exception e) {
-			LOGGER.warn("[Pick Block Pro] 处理 give 请求失败", e);
+			LOGGER.warn("[{}] 处理 give 请求失败", Reference.MOD_NAME, e);
 		}
 	}
 
@@ -234,10 +336,21 @@ public final class ServerPickService {
 					continue;
 				}
 				Optional<Holder.Reference<Enchantment>> holder = lookup.get(ResourceKey.create(Registries.ENCHANTMENT, enchantId));
-				if (holder.isPresent()) {
-					int level1 = Math.max(1, Math.min(maxLevel, entry.getValue().getAsInt()));
-					mutable.set(holder.get(), level1);
+
+				if (holder.isEmpty()) {
+					continue;
 				}
+
+				int requested;
+
+				try {
+					requested = entry.getValue().getAsInt();
+				} catch (RuntimeException e) {
+					continue;
+				}
+
+				int clamped = Math.max(1, Math.min(maxLevel, requested));
+				mutable.set(holder.get(), clamped);
 			}
 		});
 	}
@@ -258,7 +371,7 @@ public final class ServerPickService {
 			BlockItem.setBlockEntityData(stack, blockEntity.getType(), output);
 			stack.applyComponents(blockEntity.collectComponents());
 		} catch (Exception e) {
-			LOGGER.debug("[Pick Block Pro] 读取方块实体数据失败", e);
+			LOGGER.debug("[{}] 读取方块实体数据失败", Reference.MOD_NAME, e);
 		}
 	}
 
@@ -287,8 +400,9 @@ public final class ServerPickService {
 	/**
 	 * 发放物品。
 	 *
-	 * <p>背包里已有完全相同的物品时直接切过去；否则按服务端配置决定是否真正发放。
-	 * 默认（生存 + 创造）都会发放——否则带 NBT / 状态属性的拾取会毫无反应。</p>
+	 * <p>背包里已有完全相同的物品时直接切过去；否则只有创造模式（或服务端显式开启
+	 * {@code giveInSurvival}）才真正发放。生存模式默认只切换到同类物品，
+	 * 避免拾取变成免费的物品生成器。</p>
 	 */
 	private static void give(ServerPlayer player, ItemStack stack) {
 		if (stack.isEmpty()) {

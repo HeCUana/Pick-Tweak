@@ -1,6 +1,7 @@
 package fi.dy.masa.picktweak.id;
 
 import fi.dy.masa.picktweak.config.Configs;
+import fi.dy.masa.picktweak.config.HotkeyBinds;
 import fi.dy.masa.picktweak.pick.BlockPicker;
 import fi.dy.masa.picktweak.pick.ClientPicker;
 import fi.dy.masa.picktweak.pick.ClientRaycast;
@@ -9,15 +10,19 @@ import fi.dy.masa.picktweak.util.PbpText;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.phys.BlockHitResult;
@@ -33,11 +38,11 @@ import java.util.Map;
  */
 public final class IdPicker {
 
-	/** 物品 -> 方块 的反向映射（桶等特殊物品）。 */
-	private static final Map<Item, String> ITEM_TO_BLOCK = Map.of(
-			Items.WATER_BUCKET, "minecraft:water",
-			Items.LAVA_BUCKET, "minecraft:lava",
-			Items.POWDER_SNOW_BUCKET, "minecraft:powder_snow"
+	/** 物品 -> 方块 的反向映射（桶不是 BlockItem，只能显式列出）。 */
+	private static final Map<Item, Block> ITEM_TO_BLOCK = Map.of(
+			Items.WATER_BUCKET, Blocks.WATER,
+			Items.LAVA_BUCKET, Blocks.LAVA,
+			Items.POWDER_SNOW_BUCKET, Blocks.POWDER_SNOW
 	);
 
 	private IdPicker() {
@@ -54,7 +59,9 @@ public final class IdPicker {
 			return;
 		}
 
-		boolean ctrl = mc.hasControlDown();
+		// NBT 输出：配置项 includeNbt 与 NBT 修饰键（默认 Ctrl）异或，
+		// 也就是按着修饰键时临时切换一次，和配置里的默认值无关。
+		boolean nbt = config.includeNbt ^ HotkeyBinds.isModifierActive(HotkeyBinds.Modifier.NBT);
 		String text = null;
 
 		// 原版的 hitResult 受交互距离限制，这里自己按配置的距离找目标
@@ -72,15 +79,20 @@ public final class IdPicker {
 				return;
 			}
 			BlockState state = level.getBlockState(blockHit.getBlockPos());
-			text = ctrl ? blockNbtText(level, state, blockHit.getBlockPos(), config)
+			text = nbt ? blockNbtText(level, state, blockHit.getBlockPos(), config)
 					: blockIdText(state, config);
-		} else if (hit.getType() == HitResult.Type.ENTITY && config.pickEntities) {
+		} else if (hit.getType() == HitResult.Type.ENTITY) {
 			EntityHitResult entityHit = (EntityHitResult) hit;
 			if (!ClientRaycast.withinRange(mc, hit, entityRange)) {
 				return;
 			}
 			Entity entity = entityHit.getEntity();
-			text = ctrl ? entityNbtText(level, entity, config) : entityIdText(entity, config);
+			if (entity instanceof ItemEntity itemEntity && config.pickItems) {
+				// 掉落物：输出物品 ID（物品本身没有 NBT 视图，切换 NBT 无效）
+				text = itemIdText(itemEntity.getItem(), config);
+			} else if (config.pickEntities) {
+				text = nbt ? entityNbtText(level, entity, config) : entityIdText(entity, config);
+			}
 		} else if (hit.getType() == HitResult.Type.MISS && config.pickBlocks) {
 			// 指着天空：可能是太阳 / 月亮。
 			String celestial = ClientRaycast.pickCelestial(mc);
@@ -113,7 +125,8 @@ public final class IdPicker {
 				continue;
 			}
 			properties.add(name + "=" + propertyName(state, property));
-		}		if (properties.isEmpty()) {
+		}
+		if (properties.isEmpty()) {
 			return base;
 		}
 		return base + "[" + String.join(",", properties) + "]";
@@ -130,37 +143,26 @@ public final class IdPicker {
 		if (stack == null || stack.isEmpty()) {
 			return "";
 		}
+		Item item = stack.getItem();
 		if (config.itemToBlockId) {
-			String mapped = ITEM_TO_BLOCK.get(stack.getItem());
-			if (mapped != null) {
-				return mapped;
-			}
-			Identifier id = BuiltInRegistries.ITEM.getKey(stack.getItem());
-			String text = id == null ? "" : id.toString();
-			if (text.endsWith("_wall")) {
-				return stripNamespace(text.substring(0, text.length() - "_wall".length()));
-			}
-			if (text.endsWith("_stairs")) {
-				return stripNamespace(text.substring(0, text.length() - "_stairs".length()));
-			}
-			if (text.endsWith("_slab")) {
-				return stripNamespace(text.substring(0, text.length() - "_slab".length()));
+			// BlockItem 直接查它对应的方块；桶之类不是 BlockItem 的物品查显式映射。
+			Block block = item instanceof BlockItem blockItem ? blockItem.getBlock() : ITEM_TO_BLOCK.get(item);
+			if (block != null) {
+				return formatId(BuiltInRegistries.BLOCK.getKey(block), config.includeNamespace);
 			}
 		}
-		Identifier id = BuiltInRegistries.ITEM.getKey(stack.getItem());
-		return formatId(id, config.includeNamespace);
+		return formatId(BuiltInRegistries.ITEM.getKey(item), config.includeNamespace);
 	}
 
-	/** 方块实体的 NBT 文本。 */
-	public static String blockNbtText(ClientLevel level, BlockState state, net.minecraft.core.BlockPos pos, Configs.IdPicker config) {
+	/** 方块实体的 NBT 文本（与 Ctrl + 中键复制共用 {@link BlockPicker#blockEntityNbt}，含 components）。 */
+	public static String blockNbtText(ClientLevel level, BlockState state, BlockPos pos, Configs.IdPicker config) {
 		if (!state.hasBlockEntity()) {
 			return blockIdText(state, config);
 		}
-		BlockEntity blockEntity = level.getBlockEntity(pos);
-		if (blockEntity == null) {
+		CompoundTag tag = BlockPicker.blockEntityNbt(level, pos);
+		if (tag == null) {
 			return blockIdText(state, config);
 		}
-		CompoundTag tag = blockEntity.saveCustomOnly(level.registryAccess());
 		CompoundTag filtered = NbtFormatter.filter(tag, config.nbtBlacklist);
 		return NbtFormatter.format(filtered, config.prettyNbt);
 	}
@@ -180,11 +182,6 @@ public final class IdPicker {
 			return "";
 		}
 		return withNamespace ? id.toString() : id.getPath();
-	}
-
-	private static String stripNamespace(String id) {
-		int index = id.indexOf(':');
-		return index >= 0 ? id.substring(index + 1) : id;
 	}
 
 	@SuppressWarnings({"rawtypes", "unchecked"})

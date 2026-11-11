@@ -3,6 +3,7 @@ package fi.dy.masa.picktweak.smoke;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import fi.dy.masa.picktweak.config.Configs;
+import fi.dy.masa.picktweak.config.MaliOptions;
 import fi.dy.masa.picktweak.net.ItemStackParser;
 import fi.dy.masa.picktweak.net.PbpPayloads;
 import fi.dy.masa.picktweak.net.PbpServerConfig;
@@ -38,14 +39,22 @@ public class SmokeTest {
 		net.minecraft.SharedConstants.setVersion(net.minecraft.DetectedVersion.BUILT_IN);
 		Bootstrap.bootStrap();
 
-		// 1. 配置：MaLiLib 选项 + 运行时快照
-		Configs.refresh();
+		// 1. 配置：默认值（不依赖 MaLiLib） + MaLiLib 选项同步 + 运行时快照
+		Configs.installDefaults();
+		check("default snapshot", Configs.blockPicker.enabled && Configs.blockPicker.creativeRange == 100.0D
+						&& Configs.blockPicker.copyNbt && Configs.blockPicker.showCopiedNbt
+						&& Configs.inventory.lockedSlots.length == 9,
+				"creative=" + Configs.blockPicker.creativeRange);
+
+		MaliOptions.refresh();
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
-		String json = gson.toJson(Configs.BLOCK_PICKER_ENABLED.getAsJsonElement());
+		String json = gson.toJson(MaliOptions.BLOCK_PICKER_ENABLED.getAsJsonElement());
 		check("config option json round-trip", json != null && json.contains("true"), json);
 		check("config snapshot", Configs.blockPicker.enabled && Configs.blockPicker.creativeRange == 100.0D
 						&& Configs.blockPicker.copyNbt && Configs.blockPicker.showCopiedNbt
-						&& Configs.toolPicker.tools.size() == 9 && Configs.toolPicker.weapons.size() == 4
+						&& Configs.toolPicker.tools.size() == 9 && Configs.toolPicker.weapons.size() == 6
+						&& Configs.toolPicker.tools.containsKey("sword") && Configs.toolPicker.weapons.containsKey("sword")
+						&& Configs.toolPicker.tools.containsKey("axe") && Configs.toolPicker.weapons.containsKey("axe")
 						&& Configs.inventory.lockedSlots.length == 9,
 				"creative=" + Configs.blockPicker.creativeRange
 						+ " tools=" + Configs.toolPicker.tools.size()
@@ -158,15 +167,22 @@ public class SmokeTest {
 		check("tool kinds", ToolPicker.TOOL_KINDS.size() == 9, ToolPicker.TOOL_KINDS.toString());
 		check("weapon kinds", ToolPicker.WEAPON_KINDS.size() == 6, ToolPicker.WEAPON_KINDS.toString());
 
-		// 6. 服务端配置默认值
+		// 6. 服务端配置默认值（安全默认：不凭空发物品、不给客户端发装备）
 		PbpServerConfig serverConfig = PbpServerConfig.get();
 		check("server config defaults", serverConfig.maxPickDistance == 100.0D
 						&& serverConfig.allowIncludeData && serverConfig.allowStateProperties
-						&& serverConfig.giveInSurvival && serverConfig.preferEntityHeads
+						&& !serverConfig.giveInSurvival && !serverConfig.allowClientGive
+						&& serverConfig.preferEntityHeads
 						&& serverConfig.toolItems.size() == 9 && serverConfig.weaponItems.size() == 6,
 				"maxDist=" + serverConfig.maxPickDistance
 						+ " tools=" + serverConfig.toolItems.size()
-						+ " weapons=" + serverConfig.weaponItems.size());
+						+ " weapons=" + serverConfig.weaponItems.size()
+						+ " survivalGive=" + serverConfig.giveInSurvival
+						+ " clientGive=" + serverConfig.allowClientGive);
+		check("server config: celestial items are valid item ids",
+				BuiltInRegistries.ITEM.containsKey(net.minecraft.resources.Identifier.parse(serverConfig.sunItem))
+						&& BuiltInRegistries.ITEM.containsKey(net.minecraft.resources.Identifier.parse(serverConfig.moonItem)),
+				"sun=" + serverConfig.sunItem + " moon=" + serverConfig.moonItem);
 
 		// 7. 拾取数据包类型
 		check("payload types", PbpPayloads.PickBlock.TYPE.id() != null
@@ -175,6 +191,13 @@ public class SmokeTest {
 						&& PbpPayloads.PickCelestial.TYPE.id() != null
 						&& PbpPayloads.Reload.TYPE.id() != null,
 				"ok");
+		check("payload ids use the picktweak namespace",
+				PbpPayloads.PickBlock.TYPE.id().getNamespace().equals("picktweak")
+						&& PbpPayloads.PickEntity.TYPE.id().getNamespace().equals("picktweak")
+						&& PbpPayloads.GiveTool.TYPE.id().getNamespace().equals("picktweak")
+						&& PbpPayloads.PickCelestial.TYPE.id().getNamespace().equals("picktweak")
+						&& PbpPayloads.Reload.TYPE.id().getNamespace().equals("picktweak"),
+				PbpPayloads.PickBlock.TYPE.id().toString());
 
 		// 8. 太阳 / 月亮方向公式（与原版天空渲染一致）
 		var up = fi.dy.masa.picktweak.pick.ClientRaycast.celestialDirection(0.0D);

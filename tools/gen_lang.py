@@ -15,16 +15,6 @@ def add5(key, cn, tw, en, fr, ru):
     add(key, cn, tw, en, fr, ru)
 
 
-# ---------------- 面板 ----------------
-add("picktweak.config.title", "Pick Tweak 设置", "Pick Tweak 設定", "Pick Tweak Settings",
-    "Paramètres de Pick Tweak", "Настройки Pick Tweak")
-add("picktweak.config.tab.blockPicker", "区块拾取", "區塊拾取", "Block Picker", "Sélecteur de blocs", "Выбор блоков")
-add("picktweak.config.tab.idPicker", "ID 拾取", "ID 拾取", "ID Picker", "Sélecteur d'ID", "Выбор ID")
-add("picktweak.config.tab.toolPicker", "工具拾取", "工具拾取", "Tool Picker", "Sélecteur d'outils", "Выбор инструментов")
-add("picktweak.config.tab.inventory", "背包", "背包", "Inventory", "Inventaire", "Инвентарь")
-add("picktweak.config.tab.creative", "创造模式", "創造模式", "Creative", "Mode créatif", "Творческий режим")
-add("picktweak.config.tab.hotkeys", "热键", "熱鍵", "Hotkeys", "Raccourcis", "Горячие клавиши")
-
 # ---------------- 区块拾取 ----------------
 add("picktweak.config.blockPickerEnabled", "启用区块拾取", "啟用區塊拾取", "Enable the block picker",
     "Activer le sélecteur de blocs", "Включить выбор блоков")
@@ -124,8 +114,6 @@ add("picktweak.config.weaponPreferences", "武器偏好", "武器偏好", "Weapo
 # ---------------- 背包 ----------------
 add("picktweak.config.searchContainers", "搜索潜影盒 / 收纳袋", "搜尋潛影盒 / 收納袋", "Search shulker boxes and bundles",
     "Chercher dans les boîtes de shulkers et les sacs", "Искать в шалкерах и связках")
-add("picktweak.config.keepOriginalSlot", "保持在原槽位", "保持在原槽位", "Keep the original slot", "Garder la case d'origine",
-    "Оставаться в исходном слоте")
 for _i in range(1, 10):
     add(f"picktweak.config.lockHotbarSlot{_i}", f"锁定快捷栏 {_i}", f"鎖定快捷欄 {_i}", f"Lock hotbar slot {_i}",
         f"Verrouiller la case {_i}", f"Закрепить слот {_i}")
@@ -196,6 +184,10 @@ add("picktweak.message.server_mod_missing", "服务端未安装 Pick Tweak，已
     "На сервере нет серверной части Pick Tweak — возврат к выбору на клиенте.")
 add("picktweak.message.give_denied", "服务端禁止了工具发放请求。", "伺服器禁止了工具發放請求。", "The server denied the tool request.",
     "Le serveur a refusé la demande d'outil.", "Сервер отклонил запрос на выдачу инструмента.")
+add("picktweak.message.reload_denied", "服务端拒绝重载：需要 OP 权限。", "伺服器拒絕重載：需要 OP 權限。",
+    "The server rejected the reload: OP permission is required.",
+    "Le serveur a refusé le rechargement : permission OP requise.",
+    "Сервер отклонил перезагрузку: требуются права OP.")
 add("picktweak.message.nbt_copied", "已把 %s 的 NBT 复制到剪贴板。", "已把 %s 的 NBT 複製到剪貼簿。", "Copied the NBT of %s to the clipboard.",
     "NBT de %s copié dans le presse-papiers.", "NBT сущности %s скопирован в буфер обмена.")
 add("picktweak.message.no_nbt", "%s 没有可复制的 NBT。", "%s 沒有可複製的 NBT。", "%s has no NBT to copy.",

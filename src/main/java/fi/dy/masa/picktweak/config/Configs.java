@@ -1,14 +1,5 @@
 package fi.dy.masa.picktweak.config;
 
-import com.google.common.collect.ImmutableList;
-import fi.dy.masa.malilib.config.IConfigBase;
-import fi.dy.masa.malilib.config.options.ConfigBoolean;
-import fi.dy.masa.malilib.config.options.ConfigDouble;
-import fi.dy.masa.malilib.config.options.ConfigInteger;
-import fi.dy.masa.malilib.config.options.ConfigOptionList;
-import fi.dy.masa.malilib.config.options.ConfigStringList;
-import fi.dy.masa.picktweak.Reference;
-
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -16,68 +7,75 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * Pick Tweak 的全部配置。
+ * Pick Tweak 的运行时配置快照（<b>不依赖 MaLiLib</b>）。
  *
- * <p>配置项本身是 MaLiLib 的 {@code ConfigXxx}（面板里直接可编辑、可用 MaLiLib 搜索），
- * 同时这里维护一份运行时快照，业务代码读快照，避免到处写 {@code getBooleanValue()}。</p>
+ * <p>配置项本身在 {@link MaliOptions}（客户端配置面板），这里保存业务代码读取的普通字段，
+ * 同时定义全部默认值。这样两边的边界很清楚：</p>
+ *
+ * <ul>
+ *   <li>服务端：只读本类的默认值 / 自己的 {@code PbpServerConfig}，永远不加载 MaLiLib；</li>
+ *   <li>装了 MaLiLib 的客户端：{@link MaliOptions#refresh()} 把面板里的值同步进本类；</li>
+ *   <li>没装 MaLiLib 的客户端：{@link #installDefaults()} 用默认值工作。</li>
+ * </ul>
  */
 public final class Configs {
 
-	// ==================== 区块拾取 ====================
+	// ==================== 默认值（MaLiLib 配置项的默认值也取这里，避免两处维护） ====================
 
-	public static final ConfigBoolean BLOCK_PICKER_ENABLED = bool("blockPickerEnabled", true, "Whether the block picker is enabled");
-	public static final ConfigDouble BLOCK_PICKER_RANGE = dbl("blockPickerRange", 6.0D, 1.0D, 256.0D, "Block pick range in survival mode");
-	public static final ConfigDouble BLOCK_PICKER_ENTITY_RANGE = dbl("blockPickerEntityRange", 6.0D, 1.0D, 256.0D, "Entity pick range in survival mode");
-	public static final ConfigDouble BLOCK_PICKER_CREATIVE_RANGE = dbl("blockPickerCreativeRange", 100.0D, 1.0D, 256.0D, "Block pick range in creative mode");
-	public static final ConfigBoolean BLOCK_PICKER_USE_INTERACTION_RANGE = bool("blockPickerUseInteractionRange", false, "Use the player's own interaction range instead of the values above");
-	public static final ConfigBoolean BLOCK_PICKER_PICK_BLOCKS = bool("blockPickerPickBlocks", true, "Allow picking blocks");
-	public static final ConfigBoolean BLOCK_PICKER_PICK_ENTITIES = bool("blockPickerPickEntities", true, "Allow picking entities");
-	public static final ConfigBoolean BLOCK_PICKER_PICK_FLUIDS = bool("blockPickerPickFluids", true, "Pick fluids as the matching bucket");
-	public static final ConfigBoolean BLOCK_PICKER_PICK_LIGHT_SOURCES = bool("blockPickerPickLightSources", true, "Allow picking the sun and the moon");
-	public static final ConfigBoolean BLOCK_PICKER_PREFER_ENTITY_HEADS = bool("blockPickerPreferEntityHeads", true, "Prefer mob heads (zombie -> zombie head) over the vanilla spawn egg");
-	public static final ConfigBoolean BLOCK_PICKER_TAKE_OVER_LITEMATICA = bool("blockPickerTakeOverLitematica", true, "Take over Litematica's pick block hotkeys");
-	public static final ConfigBoolean BLOCK_PICKER_SHOW_FEEDBACK = bool("blockPickerShowFeedback", false, "Show a chat message about what was picked");
-	public static final ConfigBoolean BLOCK_PICKER_COPY_NBT = bool("blockPickerCopyNbt", true, "Ctrl + middle click copies the NBT of the target to the clipboard");
-	public static final ConfigBoolean BLOCK_PICKER_SHOW_COPIED_NBT = bool("blockPickerShowCopiedNbt", true, "Print the copied NBT in the chat box as well");
-	public static final ConfigOptionList BLOCK_PICKER_AXIOM_MODE = optionList("blockPickerAxiomMode", AxiomMode.YIELD, "How to behave when Axiom is installed");
-	public static final ConfigStringList BLOCK_ENTITY_NBT_BLACKLIST = strList("blockEntityNbtBlacklist", ImmutableList.of("id"), "Block entity NBT keys to hide (paths, e.g. id or Items.id)");
-	public static final ConfigStringList STATE_PROPERTY_BLACKLIST = strList("statePropertyBlacklist", ImmutableList.of("waterlogged"), "Block state properties to hide");
-	public static final ConfigStringList ENTITY_NBT_BLACKLIST = strList("entityNbtBlacklist", ImmutableList.of("UUID", "Motion", "Rotation", "Pos", "FallDistance", "fall_distance"), "Entity NBT keys to hide (paths, e.g. UUID or equipment.head.id)");
+	// 区块拾取
+	public static final boolean DEFAULT_BLOCK_PICKER_ENABLED = true;
+	public static final double DEFAULT_BLOCK_PICKER_RANGE = 6.0D;
+	public static final double DEFAULT_BLOCK_PICKER_ENTITY_RANGE = 6.0D;
+	public static final double DEFAULT_BLOCK_PICKER_CREATIVE_RANGE = 100.0D;
+	public static final boolean DEFAULT_BLOCK_PICKER_USE_INTERACTION_RANGE = false;
+	public static final boolean DEFAULT_BLOCK_PICKER_PICK_BLOCKS = true;
+	public static final boolean DEFAULT_BLOCK_PICKER_PICK_ENTITIES = true;
+	public static final boolean DEFAULT_BLOCK_PICKER_PICK_FLUIDS = true;
+	public static final boolean DEFAULT_BLOCK_PICKER_PICK_LIGHT_SOURCES = true;
+	public static final boolean DEFAULT_BLOCK_PICKER_PREFER_ENTITY_HEADS = true;
+	public static final boolean DEFAULT_BLOCK_PICKER_TAKE_OVER_LITEMATICA = true;
+	public static final boolean DEFAULT_BLOCK_PICKER_SHOW_FEEDBACK = false;
+	public static final boolean DEFAULT_BLOCK_PICKER_COPY_NBT = true;
+	public static final boolean DEFAULT_BLOCK_PICKER_SHOW_COPIED_NBT = true;
+	public static final List<String> DEFAULT_BLOCK_ENTITY_NBT_BLACKLIST = List.of("id");
+	public static final List<String> DEFAULT_STATE_PROPERTY_BLACKLIST = List.of("waterlogged");
+	public static final List<String> DEFAULT_ENTITY_NBT_BLACKLIST =
+			List.of("UUID", "Motion", "Rotation", "Pos", "FallDistance", "fall_distance");
 
-	// ==================== ID 拾取 ====================
+	// ID 拾取
+	public static final boolean DEFAULT_ID_PICKER_ENABLED = true;
+	public static final double DEFAULT_ID_PICKER_RANGE = 6.0D;
+	public static final double DEFAULT_ID_PICKER_ENTITY_RANGE = 6.0D;
+	public static final double DEFAULT_ID_PICKER_CREATIVE_RANGE = 12.0D;
+	public static final boolean DEFAULT_ID_PICKER_USE_INTERACTION_RANGE = false;
+	public static final boolean DEFAULT_ID_PICKER_INCLUDE_NAMESPACE = true;
+	public static final boolean DEFAULT_ID_PICKER_INCLUDE_STATE_PROPERTIES = true;
+	public static final boolean DEFAULT_ID_PICKER_COPY_TO_CLIPBOARD = true;
+	public static final boolean DEFAULT_ID_PICKER_INCLUDE_NBT = false;
+	public static final boolean DEFAULT_ID_PICKER_PRETTY_NBT = false;
+	public static final boolean DEFAULT_ID_PICKER_CHAT_SHORTCUT = true;
+	public static final boolean DEFAULT_ID_PICKER_ITEM_TO_BLOCK_ID = true;
+	public static final boolean DEFAULT_ID_PICKER_PICK_BLOCKS = true;
+	public static final boolean DEFAULT_ID_PICKER_PICK_ENTITIES = true;
+	public static final boolean DEFAULT_ID_PICKER_PICK_ITEMS = true;
+	public static final List<String> DEFAULT_ID_NBT_BLACKLIST =
+			List.of("UUID", "Motion", "Rotation", "Pos", "FallDistance");
+	public static final List<String> DEFAULT_ID_STATE_PROPERTY_BLACKLIST = List.of("waterlogged");
 
-	public static final ConfigBoolean ID_PICKER_ENABLED = bool("idPickerEnabled", true, "Whether the ID picker is enabled");
-	public static final ConfigDouble ID_PICKER_RANGE = dbl("idPickerRange", 6.0D, 1.0D, 256.0D, "ID pick range in survival mode");
-	public static final ConfigDouble ID_PICKER_ENTITY_RANGE = dbl("idPickerEntityRange", 6.0D, 1.0D, 256.0D, "Entity ID pick range in survival mode");
-	public static final ConfigDouble ID_PICKER_CREATIVE_RANGE = dbl("idPickerCreativeRange", 12.0D, 1.0D, 256.0D, "ID pick range in creative mode");
-	public static final ConfigBoolean ID_PICKER_USE_INTERACTION_RANGE = bool("idPickerUseInteractionRange", false, "Use the player's own interaction range instead of the values above");
-	public static final ConfigBoolean ID_PICKER_INCLUDE_NAMESPACE = bool("idPickerIncludeNamespace", true, "Include the namespace in the output (minecraft:stone)");
-	public static final ConfigBoolean ID_PICKER_INCLUDE_STATE_PROPERTIES = bool("idPickerIncludeStateProperties", true, "Include the block state properties in the output");
-	public static final ConfigBoolean ID_PICKER_COPY_TO_CLIPBOARD = bool("idPickerCopyToClipboard", true, "Copy the output to the clipboard as well");
-	public static final ConfigBoolean ID_PICKER_INCLUDE_NBT = bool("idPickerIncludeNbt", false, "Output NBT instead of just the ID (can be toggled with Ctrl)");
-	public static final ConfigBoolean ID_PICKER_PRETTY_NBT = bool("idPickerPrettyNbt", false, "Pretty print the NBT output");
-	public static final ConfigBoolean ID_PICKER_CHAT_SHORTCUT = bool("idPickerChatShortcut", true, "Ctrl + number key in the chat box writes the hotbar item ID");
-	public static final ConfigBoolean ID_PICKER_ITEM_TO_BLOCK_ID = bool("idPickerItemToBlockId", true, "Convert item IDs into the matching block IDs");
-	public static final ConfigBoolean ID_PICKER_PICK_BLOCKS = bool("idPickerPickBlocks", true, "Allow ID picking for blocks");
-	public static final ConfigBoolean ID_PICKER_PICK_ENTITIES = bool("idPickerPickEntities", true, "Allow ID picking for entities");
-	public static final ConfigBoolean ID_PICKER_PICK_ITEMS = bool("idPickerPickItems", true, "Allow ID picking for items");
-	public static final ConfigStringList ID_NBT_BLACKLIST = strList("idNbtBlacklist", ImmutableList.of("UUID", "Motion", "Rotation", "Pos", "FallDistance"), "NBT keys to hide");
-	public static final ConfigStringList ID_STATE_PROPERTY_BLACKLIST = strList("idStatePropertyBlacklist", ImmutableList.of("waterlogged"), "Block state properties to hide");
+	// 工具拾取
+	public static final boolean DEFAULT_TOOL_PICKER_ENABLED = true;
+	public static final double DEFAULT_TOOL_PICKER_RANGE = 6.0D;
+	public static final double DEFAULT_TOOL_PICKER_CREATIVE_RANGE = 100.0D;
+	public static final int DEFAULT_TOOL_PICKER_DURABILITY_THRESHOLD = 10;
+	public static final boolean DEFAULT_TOOL_PICKER_PICK_FLUID = true;
+	public static final boolean DEFAULT_TOOL_PICKER_BAMBOO_PREFERS_SWORD = true;
+	public static final boolean DEFAULT_TOOL_PICKER_PREFER_SILK_TOUCH = false;
+	public static final boolean DEFAULT_TOOL_PICKER_PREFER_FORTUNE = true;
+	public static final boolean DEFAULT_TOOL_PICKER_PREFER_EFFICIENCY = true;
+	public static final boolean DEFAULT_TOOL_PICKER_ALLOW_INCOMPATIBLE = false;
+	public static final boolean DEFAULT_TOOL_PICKER_GENERATE_IN_CREATIVE = true;
 
-	// ==================== 工具拾取 ====================
-
-	public static final ConfigBoolean TOOL_PICKER_ENABLED = bool("toolPickerEnabled", true, "Whether the tool picker is enabled");
-	public static final ConfigDouble TOOL_PICKER_RANGE = dbl("toolPickerRange", 6.0D, 1.0D, 256.0D, "Tool pick range in survival mode");
-	public static final ConfigDouble TOOL_PICKER_CREATIVE_RANGE = dbl("toolPickerCreativeRange", 100.0D, 1.0D, 256.0D, "Tool pick range in creative mode");
-	public static final ConfigInteger TOOL_PICKER_DURABILITY_THRESHOLD = integer("toolPickerDurabilityThreshold", 10, 0, 1000, "Tools with less remaining durability are skipped");
-	public static final ConfigBoolean TOOL_PICKER_PICK_FLUID = bool("toolPickerPickFluid", true, "Use a bucket for fluids and powder snow");
-	public static final ConfigBoolean TOOL_PICKER_BAMBOO_PREFERS_SWORD = bool("toolPickerBambooPrefersSword", true, "Prefer a sword for bamboo");
-	public static final ConfigBoolean TOOL_PICKER_PREFER_SILK_TOUCH = bool("toolPickerPreferSilkTouch", false, "Prefer silk touch");
-	public static final ConfigBoolean TOOL_PICKER_PREFER_FORTUNE = bool("toolPickerPreferFortune", true, "Prefer fortune");
-	public static final ConfigBoolean TOOL_PICKER_PREFER_EFFICIENCY = bool("toolPickerPreferEfficiency", true, "Prefer efficiency");
-	public static final ConfigBoolean TOOL_PICKER_ALLOW_INCOMPATIBLE = bool("toolPickerAllowIncompatible", false, "Allow incompatible enchantments (generated up to level 255)");
-	public static final ConfigBoolean TOOL_PICKER_GENERATE_IN_CREATIVE = bool("toolPickerGenerateInCreative", true, "Generate a fully enchanted tool in creative mode");
-	public static final ConfigStringList TOOL_SPECS = strList("toolSpecs", ImmutableList.of(
+	public static final List<String> DEFAULT_TOOL_SPECS = List.of(
 			"pickaxe|minecraft:diamond_pickaxe|minecraft:efficiency=5;minecraft:silk_touch=5;minecraft:unbreaking=5;minecraft:mending=5;minecraft:fortune=5",
 			"axe|minecraft:diamond_axe|minecraft:efficiency=5;minecraft:silk_touch=5;minecraft:unbreaking=5;minecraft:mending=5;minecraft:fortune=5",
 			"shovel|minecraft:diamond_shovel|minecraft:efficiency=5;minecraft:silk_touch=5;minecraft:unbreaking=5;minecraft:mending=5;minecraft:fortune=5",
@@ -90,57 +88,17 @@ public final class Configs {
 			"bow|minecraft:bow|minecraft:power=5;minecraft:punch=5;minecraft:unbreaking=5;minecraft:mending=5;minecraft:infinity=1",
 			"crossbow|minecraft:crossbow|minecraft:power=5;minecraft:punch=5;minecraft:unbreaking=5;minecraft:mending=5;minecraft:quick_charge=5",
 			"trident|minecraft:trident|minecraft:sharpness=5;minecraft:unbreaking=5;minecraft:mending=5;minecraft:riptide=5;minecraft:impaling=5",
-			"mace|minecraft:mace|minecraft:smite=5;minecraft:unbreaking=5;minecraft:mending=5;minecraft:breach=5"
-	), "Tool and weapon presets: kind|itemId|enchantment=level;enchantment=level");
-	public static final ConfigStringList WEAPON_PREFERENCES = strList("weaponPreferences", ImmutableList.of(),
-			"Preferred weapon per entity type: entityId=bow|trident|sword|axe|mace");
+			"mace|minecraft:mace|minecraft:smite=5;minecraft:unbreaking=5;minecraft:mending=5;minecraft:breach=5");
 
-	// ==================== 背包 ====================
+	public static final List<String> DEFAULT_WEAPON_PREFERENCES = List.of();
 
-	public static final ConfigBoolean SEARCH_CONTAINERS = bool("searchContainers", true, "Search shulker boxes and bundles for tools");
-	public static final ConfigBoolean KEEP_ORIGINAL_SLOT = bool("keepOriginalSlot", false, "Return to the original hotbar slot after switching");
-	public static final ConfigBoolean LOCK_HOTBAR_SLOT_1 = bool("lockHotbarSlot1", false, "Lock hotbar slot 1");
-	public static final ConfigBoolean LOCK_HOTBAR_SLOT_2 = bool("lockHotbarSlot2", false, "Lock hotbar slot 2");
-	public static final ConfigBoolean LOCK_HOTBAR_SLOT_3 = bool("lockHotbarSlot3", false, "Lock hotbar slot 3");
-	public static final ConfigBoolean LOCK_HOTBAR_SLOT_4 = bool("lockHotbarSlot4", false, "Lock hotbar slot 4");
-	public static final ConfigBoolean LOCK_HOTBAR_SLOT_5 = bool("lockHotbarSlot5", false, "Lock hotbar slot 5");
-	public static final ConfigBoolean LOCK_HOTBAR_SLOT_6 = bool("lockHotbarSlot6", false, "Lock hotbar slot 6");
-	public static final ConfigBoolean LOCK_HOTBAR_SLOT_7 = bool("lockHotbarSlot7", false, "Lock hotbar slot 7");
-	public static final ConfigBoolean LOCK_HOTBAR_SLOT_8 = bool("lockHotbarSlot8", false, "Lock hotbar slot 8");
-	public static final ConfigBoolean LOCK_HOTBAR_SLOT_9 = bool("lockHotbarSlot9", false, "Lock hotbar slot 9");
+	// 背包
+	public static final boolean DEFAULT_SEARCH_CONTAINERS = true;
 
-	// ==================== 创造模式 ====================
-
-	public static final ConfigBoolean CREATIVE_INJECT_TOOLS = bool("creativeInjectTools", true, "Inject the configured tools into the creative inventory");
-	public static final ConfigBoolean CREATIVE_INJECT_WEAPONS = bool("creativeInjectWeapons", true, "Inject the configured weapons into the creative inventory");
-	public static final fi.dy.masa.malilib.config.options.ConfigString CREATIVE_TAB = str("creativeTab", "minecraft:op_blocks", "The creative inventory tab to inject the items into");
-
-	/** 面板里显示的全部配置项。 */
-	public static final List<IConfigBase> ALL_CONFIGS = List.of(
-			BLOCK_PICKER_ENABLED, BLOCK_PICKER_RANGE, BLOCK_PICKER_ENTITY_RANGE, BLOCK_PICKER_CREATIVE_RANGE,
-			BLOCK_PICKER_USE_INTERACTION_RANGE, BLOCK_PICKER_PICK_BLOCKS, BLOCK_PICKER_PICK_ENTITIES,
-			BLOCK_PICKER_PICK_FLUIDS, BLOCK_PICKER_PICK_LIGHT_SOURCES, BLOCK_PICKER_PREFER_ENTITY_HEADS,
-			BLOCK_PICKER_TAKE_OVER_LITEMATICA, BLOCK_PICKER_SHOW_FEEDBACK,
-			BLOCK_PICKER_COPY_NBT, BLOCK_PICKER_SHOW_COPIED_NBT, BLOCK_PICKER_AXIOM_MODE,
-			BLOCK_ENTITY_NBT_BLACKLIST, STATE_PROPERTY_BLACKLIST, ENTITY_NBT_BLACKLIST,
-
-			ID_PICKER_ENABLED, ID_PICKER_RANGE, ID_PICKER_ENTITY_RANGE, ID_PICKER_CREATIVE_RANGE,
-			ID_PICKER_USE_INTERACTION_RANGE, ID_PICKER_INCLUDE_NAMESPACE, ID_PICKER_INCLUDE_STATE_PROPERTIES,
-			ID_PICKER_COPY_TO_CLIPBOARD, ID_PICKER_INCLUDE_NBT, ID_PICKER_PRETTY_NBT, ID_PICKER_CHAT_SHORTCUT,
-			ID_PICKER_ITEM_TO_BLOCK_ID, ID_PICKER_PICK_BLOCKS, ID_PICKER_PICK_ENTITIES, ID_PICKER_PICK_ITEMS,
-			ID_NBT_BLACKLIST, ID_STATE_PROPERTY_BLACKLIST,
-
-			TOOL_PICKER_ENABLED, TOOL_PICKER_RANGE, TOOL_PICKER_CREATIVE_RANGE, TOOL_PICKER_DURABILITY_THRESHOLD,
-			TOOL_PICKER_PICK_FLUID, TOOL_PICKER_BAMBOO_PREFERS_SWORD, TOOL_PICKER_PREFER_SILK_TOUCH,
-			TOOL_PICKER_PREFER_FORTUNE, TOOL_PICKER_PREFER_EFFICIENCY, TOOL_PICKER_ALLOW_INCOMPATIBLE,
-			TOOL_PICKER_GENERATE_IN_CREATIVE, TOOL_SPECS, WEAPON_PREFERENCES,
-
-			SEARCH_CONTAINERS, KEEP_ORIGINAL_SLOT,
-			LOCK_HOTBAR_SLOT_1, LOCK_HOTBAR_SLOT_2, LOCK_HOTBAR_SLOT_3, LOCK_HOTBAR_SLOT_4, LOCK_HOTBAR_SLOT_5,
-			LOCK_HOTBAR_SLOT_6, LOCK_HOTBAR_SLOT_7, LOCK_HOTBAR_SLOT_8, LOCK_HOTBAR_SLOT_9,
-
-			CREATIVE_INJECT_TOOLS, CREATIVE_INJECT_WEAPONS, CREATIVE_TAB
-	);
+	// 创造模式
+	public static final boolean DEFAULT_CREATIVE_INJECT_TOOLS = true;
+	public static final boolean DEFAULT_CREATIVE_INJECT_WEAPONS = true;
+	public static final String DEFAULT_CREATIVE_TAB = "minecraft:op_blocks";
 
 	// ==================== 运行时快照 ====================
 
@@ -224,7 +182,6 @@ public final class Configs {
 
 	public static final class Inventory {
 		public boolean searchContainers;
-		public boolean keepOriginalSlot;
 		public boolean[] lockedSlots = new boolean[9];
 	}
 
@@ -234,101 +191,152 @@ public final class Configs {
 		public String injectTab = "minecraft:op_blocks";
 	}
 
+	/**
+	 * 装了 Axiom 时，中键拾取归谁管。
+	 *
+	 * <p>这里刻意不实现 MaLiLib 的 {@code IConfigOptionListEntry}：本类要保持无 MaLiLib 依赖。
+	 * 面板里的适配在 {@link MaliOptions.AxiomModeEntry}。</p>
+	 */
+	public enum AxiomMode {
+		/** 让位：Axiom 的 builder 工具、编辑器和无限距离优先，其余我们自己接管。 */
+		YIELD("yield"),
+		/** 覆盖：除编辑器模式外一律我们自己接管。 */
+		OVERRIDE("override");
+
+		private final String configString;
+
+		AxiomMode(String configString) {
+			this.configString = configString;
+		}
+
+		public String getStringValue() {
+			return this.configString;
+		}
+
+		/** 配置项的翻译键（和面板里显示的一致）。 */
+		public String getTranslationKey() {
+			return "picktweak.config.axiomMode." + this.configString;
+		}
+
+		/** 在枚举里循环（面板的下拉框用）。 */
+		public AxiomMode cycle(boolean forward) {
+			AxiomMode[] values = values();
+			int index = this.ordinal() + (forward ? 1 : -1);
+			return values[Math.floorMod(index, values.length)];
+		}
+
+		/** 按配置字符串解析，认不出来时返回当前值。 */
+		public AxiomMode fromString(String value) {
+			if (value != null) {
+				for (AxiomMode mode : values()) {
+					if (mode.configString.equalsIgnoreCase(value)) {
+						return mode;
+					}
+				}
+			}
+			return this;
+		}
+
+		/** 按配置字符串解析，认不出来时返回 {@link #YIELD}。 */
+		public static AxiomMode byName(String value) {
+			if (value != null) {
+				for (AxiomMode mode : values()) {
+					if (mode.configString.equalsIgnoreCase(value)) {
+						return mode;
+					}
+				}
+			}
+			return YIELD;
+		}
+	}
+
 	private Configs() {
 	}
 
-	/** 把 MaLiLib 的配置值同步到运行时快照。 */
-	public static void refresh() {
+	/** 用默认值填充运行时快照（没装 MaLiLib 的客户端 / 服务端共用）。 */
+	public static void installDefaults() {
 		BlockPicker bp = blockPicker;
-		bp.enabled = BLOCK_PICKER_ENABLED.getBooleanValue();
-		bp.range = BLOCK_PICKER_RANGE.getDoubleValue();
-		bp.entityRange = BLOCK_PICKER_ENTITY_RANGE.getDoubleValue();
-		bp.creativeRange = BLOCK_PICKER_CREATIVE_RANGE.getDoubleValue();
-		bp.useInteractionRange = BLOCK_PICKER_USE_INTERACTION_RANGE.getBooleanValue();
-		bp.pickBlocks = BLOCK_PICKER_PICK_BLOCKS.getBooleanValue();
-		bp.pickEntities = BLOCK_PICKER_PICK_ENTITIES.getBooleanValue();
-		bp.pickFluids = BLOCK_PICKER_PICK_FLUIDS.getBooleanValue();
-		bp.pickLightSources = BLOCK_PICKER_PICK_LIGHT_SOURCES.getBooleanValue();
-		bp.preferEntityHeads = BLOCK_PICKER_PREFER_ENTITY_HEADS.getBooleanValue();
-		bp.takeOverLitematica = BLOCK_PICKER_TAKE_OVER_LITEMATICA.getBooleanValue();
-		bp.showPickFeedback = BLOCK_PICKER_SHOW_FEEDBACK.getBooleanValue();
-		bp.copyNbt = BLOCK_PICKER_COPY_NBT.getBooleanValue();
-		bp.showCopiedNbt = BLOCK_PICKER_SHOW_COPIED_NBT.getBooleanValue();
-		bp.axiomMode = readAxiomMode();
-		bp.blockEntityNbtBlacklist = new ArrayList<>(BLOCK_ENTITY_NBT_BLACKLIST.getStrings());
-		bp.statePropertyBlacklist = new ArrayList<>(STATE_PROPERTY_BLACKLIST.getStrings());
-		bp.entityNbtBlacklist = new ArrayList<>(ENTITY_NBT_BLACKLIST.getStrings());
+		bp.enabled = DEFAULT_BLOCK_PICKER_ENABLED;
+		bp.range = DEFAULT_BLOCK_PICKER_RANGE;
+		bp.entityRange = DEFAULT_BLOCK_PICKER_ENTITY_RANGE;
+		bp.creativeRange = DEFAULT_BLOCK_PICKER_CREATIVE_RANGE;
+		bp.useInteractionRange = DEFAULT_BLOCK_PICKER_USE_INTERACTION_RANGE;
+		bp.pickBlocks = DEFAULT_BLOCK_PICKER_PICK_BLOCKS;
+		bp.pickEntities = DEFAULT_BLOCK_PICKER_PICK_ENTITIES;
+		bp.pickFluids = DEFAULT_BLOCK_PICKER_PICK_FLUIDS;
+		bp.pickLightSources = DEFAULT_BLOCK_PICKER_PICK_LIGHT_SOURCES;
+		bp.preferEntityHeads = DEFAULT_BLOCK_PICKER_PREFER_ENTITY_HEADS;
+		bp.takeOverLitematica = DEFAULT_BLOCK_PICKER_TAKE_OVER_LITEMATICA;
+		bp.showPickFeedback = DEFAULT_BLOCK_PICKER_SHOW_FEEDBACK;
+		bp.copyNbt = DEFAULT_BLOCK_PICKER_COPY_NBT;
+		bp.showCopiedNbt = DEFAULT_BLOCK_PICKER_SHOW_COPIED_NBT;
+		bp.axiomMode = AxiomMode.YIELD;
+		bp.blockEntityNbtBlacklist = new ArrayList<>(DEFAULT_BLOCK_ENTITY_NBT_BLACKLIST);
+		bp.statePropertyBlacklist = new ArrayList<>(DEFAULT_STATE_PROPERTY_BLACKLIST);
+		bp.entityNbtBlacklist = new ArrayList<>(DEFAULT_ENTITY_NBT_BLACKLIST);
 
 		IdPicker ip = idPicker;
-		ip.enabled = ID_PICKER_ENABLED.getBooleanValue();
-		ip.range = ID_PICKER_RANGE.getDoubleValue();
-		ip.entityRange = ID_PICKER_ENTITY_RANGE.getDoubleValue();
-		ip.creativeRange = ID_PICKER_CREATIVE_RANGE.getDoubleValue();
-		ip.useInteractionRange = ID_PICKER_USE_INTERACTION_RANGE.getBooleanValue();
-		ip.includeNamespace = ID_PICKER_INCLUDE_NAMESPACE.getBooleanValue();
-		ip.includeStateProperties = ID_PICKER_INCLUDE_STATE_PROPERTIES.getBooleanValue();
-		ip.copyToClipboard = ID_PICKER_COPY_TO_CLIPBOARD.getBooleanValue();
-		ip.includeNbt = ID_PICKER_INCLUDE_NBT.getBooleanValue();
-		ip.prettyNbt = ID_PICKER_PRETTY_NBT.getBooleanValue();
-		ip.chatShortcut = ID_PICKER_CHAT_SHORTCUT.getBooleanValue();
-		ip.itemToBlockId = ID_PICKER_ITEM_TO_BLOCK_ID.getBooleanValue();
-		ip.pickBlocks = ID_PICKER_PICK_BLOCKS.getBooleanValue();
-		ip.pickEntities = ID_PICKER_PICK_ENTITIES.getBooleanValue();
-		ip.pickItems = ID_PICKER_PICK_ITEMS.getBooleanValue();
-		ip.nbtBlacklist = new ArrayList<>(ID_NBT_BLACKLIST.getStrings());
-		ip.statePropertyBlacklist = new ArrayList<>(ID_STATE_PROPERTY_BLACKLIST.getStrings());
+		ip.enabled = DEFAULT_ID_PICKER_ENABLED;
+		ip.range = DEFAULT_ID_PICKER_RANGE;
+		ip.entityRange = DEFAULT_ID_PICKER_ENTITY_RANGE;
+		ip.creativeRange = DEFAULT_ID_PICKER_CREATIVE_RANGE;
+		ip.useInteractionRange = DEFAULT_ID_PICKER_USE_INTERACTION_RANGE;
+		ip.includeNamespace = DEFAULT_ID_PICKER_INCLUDE_NAMESPACE;
+		ip.includeStateProperties = DEFAULT_ID_PICKER_INCLUDE_STATE_PROPERTIES;
+		ip.copyToClipboard = DEFAULT_ID_PICKER_COPY_TO_CLIPBOARD;
+		ip.includeNbt = DEFAULT_ID_PICKER_INCLUDE_NBT;
+		ip.prettyNbt = DEFAULT_ID_PICKER_PRETTY_NBT;
+		ip.chatShortcut = DEFAULT_ID_PICKER_CHAT_SHORTCUT;
+		ip.itemToBlockId = DEFAULT_ID_PICKER_ITEM_TO_BLOCK_ID;
+		ip.pickBlocks = DEFAULT_ID_PICKER_PICK_BLOCKS;
+		ip.pickEntities = DEFAULT_ID_PICKER_PICK_ENTITIES;
+		ip.pickItems = DEFAULT_ID_PICKER_PICK_ITEMS;
+		ip.nbtBlacklist = new ArrayList<>(DEFAULT_ID_NBT_BLACKLIST);
+		ip.statePropertyBlacklist = new ArrayList<>(DEFAULT_ID_STATE_PROPERTY_BLACKLIST);
 
 		ToolPicker tp = toolPicker;
-		tp.enabled = TOOL_PICKER_ENABLED.getBooleanValue();
-		tp.range = TOOL_PICKER_RANGE.getDoubleValue();
-		tp.creativeRange = TOOL_PICKER_CREATIVE_RANGE.getDoubleValue();
-		tp.durabilityThreshold = TOOL_PICKER_DURABILITY_THRESHOLD.getIntegerValue();
-		tp.pickFluid = TOOL_PICKER_PICK_FLUID.getBooleanValue();
-		tp.bambooPrefersSword = TOOL_PICKER_BAMBOO_PREFERS_SWORD.getBooleanValue();
-		tp.preferSilkTouch = TOOL_PICKER_PREFER_SILK_TOUCH.getBooleanValue();
-		tp.preferFortune = TOOL_PICKER_PREFER_FORTUNE.getBooleanValue();
-		tp.preferEfficiency = TOOL_PICKER_PREFER_EFFICIENCY.getBooleanValue();
-		tp.allowIncompatible = TOOL_PICKER_ALLOW_INCOMPATIBLE.getBooleanValue();
-		tp.generateInCreative = TOOL_PICKER_GENERATE_IN_CREATIVE.getBooleanValue();
-		tp.weaponPreference = parseWeaponPreferences();
+		tp.enabled = DEFAULT_TOOL_PICKER_ENABLED;
+		tp.range = DEFAULT_TOOL_PICKER_RANGE;
+		tp.creativeRange = DEFAULT_TOOL_PICKER_CREATIVE_RANGE;
+		tp.durabilityThreshold = DEFAULT_TOOL_PICKER_DURABILITY_THRESHOLD;
+		tp.pickFluid = DEFAULT_TOOL_PICKER_PICK_FLUID;
+		tp.bambooPrefersSword = DEFAULT_TOOL_PICKER_BAMBOO_PREFERS_SWORD;
+		tp.preferSilkTouch = DEFAULT_TOOL_PICKER_PREFER_SILK_TOUCH;
+		tp.preferFortune = DEFAULT_TOOL_PICKER_PREFER_FORTUNE;
+		tp.preferEfficiency = DEFAULT_TOOL_PICKER_PREFER_EFFICIENCY;
+		tp.allowIncompatible = DEFAULT_TOOL_PICKER_ALLOW_INCOMPATIBLE;
+		tp.generateInCreative = DEFAULT_TOOL_PICKER_GENERATE_IN_CREATIVE;
+		tp.weaponPreference = parseWeaponPreferences(DEFAULT_WEAPON_PREFERENCES);
+		applyToolSpecs(DEFAULT_TOOL_SPECS);
+
+		inventory.searchContainers = DEFAULT_SEARCH_CONTAINERS;
+		inventory.lockedSlots = new boolean[9];
+
+		creative.injectTools = DEFAULT_CREATIVE_INJECT_TOOLS;
+		creative.injectWeapons = DEFAULT_CREATIVE_INJECT_WEAPONS;
+		creative.injectTab = DEFAULT_CREATIVE_TAB;
+	}
+
+	/**
+	 * 解析工具预设：{@code kind|itemId|enchant=level;enchant=level}。
+	 *
+	 * <p>剑 / 斧既是工具也是武器，所以会同时放进 {@link ToolPicker#tools} 与
+	 * {@link ToolPicker#weapons}（两份独立的 spec，互不影响）。</p>
+	 */
+	public static void applyToolSpecs(List<String> entries) {
+		ToolPicker tp = toolPicker;
 		tp.tools = new LinkedHashMap<>();
 		tp.weapons = new LinkedHashMap<>();
-		parseToolSpecs();
 
-		inventory.searchContainers = SEARCH_CONTAINERS.getBooleanValue();
-		inventory.keepOriginalSlot = KEEP_ORIGINAL_SLOT.getBooleanValue();
-		inventory.lockedSlots = new boolean[]{
-				LOCK_HOTBAR_SLOT_1.getBooleanValue(), LOCK_HOTBAR_SLOT_2.getBooleanValue(),
-				LOCK_HOTBAR_SLOT_3.getBooleanValue(), LOCK_HOTBAR_SLOT_4.getBooleanValue(),
-				LOCK_HOTBAR_SLOT_5.getBooleanValue(), LOCK_HOTBAR_SLOT_6.getBooleanValue(),
-				LOCK_HOTBAR_SLOT_7.getBooleanValue(), LOCK_HOTBAR_SLOT_8.getBooleanValue(),
-				LOCK_HOTBAR_SLOT_9.getBooleanValue()
-		};
-
-		creative.injectTools = CREATIVE_INJECT_TOOLS.getBooleanValue();
-		creative.injectWeapons = CREATIVE_INJECT_WEAPONS.getBooleanValue();
-		creative.injectTab = CREATIVE_TAB.getStringValue();
-	}
-
-	private static Map<String, String> parseWeaponPreferences() {
-		Map<String, String> map = new LinkedHashMap<>();
-		for (String entry : WEAPON_PREFERENCES.getStrings()) {
-			int idx = entry.indexOf('=');
-			if (idx > 0) {
-				map.put(entry.substring(0, idx).trim().toLowerCase(Locale.ROOT), entry.substring(idx + 1).trim().toLowerCase(Locale.ROOT));
-			}
-		}
-		return map;
-	}
-
-	/** 解析工具预设：kind|itemId|enchant=level;enchant=level */
-	private static void parseToolSpecs() {
-		for (String entry : TOOL_SPECS.getStrings()) {
+		for (String entry : entries) {
 			String[] parts = entry.split("\\|");
 			if (parts.length < 2) {
 				continue;
 			}
 			String kind = parts[0].trim().toLowerCase(Locale.ROOT);
+			if (kind.isEmpty()) {
+				continue;
+			}
 			ToolSpec spec = new ToolSpec(parts[1].trim());
 			if (parts.length > 2 && !parts[2].isBlank()) {
 				for (String enchant : parts[2].split(";")) {
@@ -343,108 +351,48 @@ public final class Configs {
 					}
 				}
 			}
+			if (isToolKind(kind)) {
+				tp.tools.put(kind, spec);
+			}
 			if (isWeaponKind(kind)) {
-				toolPicker.weapons.put(kind, spec);
-			} else {
-				toolPicker.tools.put(kind, spec);
+				tp.weapons.put(kind, copySpec(spec));
 			}
 		}
 	}
 
-	private static boolean isWeaponKind(String kind) {
+	/** 解析武器偏好：{@code entityId=bow|trident|sword|axe|mace}。 */
+	public static Map<String, String> parseWeaponPreferences(List<String> entries) {
+		Map<String, String> map = new LinkedHashMap<>();
+		for (String entry : entries) {
+			int idx = entry.indexOf('=');
+			if (idx > 0) {
+				map.put(entry.substring(0, idx).trim().toLowerCase(Locale.ROOT),
+						entry.substring(idx + 1).trim().toLowerCase(Locale.ROOT));
+			}
+		}
+		return map;
+	}
+
+	/** 工具种类（和 {@code ToolPicker.TOOL_KINDS} 对应）。 */
+	private static boolean isToolKind(String kind) {
 		return switch (kind) {
-			case "bow", "crossbow", "trident", "mace" -> true;
+			case "pickaxe", "axe", "shovel", "hoe", "sword", "shears", "bucket", "fishing_rod", "brush" -> true;
 			default -> false;
 		};
 	}
 
-	// ==================== 构造辅助 ====================
-
-	/**
-	 * 装了 Axiom 时，中键拾取归谁管。
-	 */
-	public enum AxiomMode implements fi.dy.masa.malilib.config.IConfigOptionListEntry {
-		/** 让位：Axiom 的 builder 工具、编辑器和无限距离优先，其余我们自己接管。 */
-		YIELD("yield"),
-		/** 覆盖：除编辑器模式外一律我们自己接管。 */
-		OVERRIDE("override");
-
-		private final String configString;
-
-		AxiomMode(String configString) {
-			this.configString = configString;
-		}
-
-		@Override
-		public String getStringValue() {
-			return this.configString;
-		}
-
-		@Override
-		public String getDisplayName() {
-			return fi.dy.masa.malilib.util.StringUtils.translate("picktweak.config.axiomMode." + this.configString);
-		}
-
-		@Override
-		public fi.dy.masa.malilib.config.IConfigOptionListEntry cycle(boolean forward) {
-			AxiomMode[] values = values();
-			int index = this.ordinal() + (forward ? 1 : -1);
-			return values[Math.floorMod(index, values.length)];
-		}
-
-		@Override
-		public fi.dy.masa.malilib.config.IConfigOptionListEntry fromString(String value) {
-			if (value != null) {
-				for (AxiomMode mode : values()) {
-					if (mode.configString.equalsIgnoreCase(value)) {
-						return mode;
-					}
-				}
-			}
-			return this;
-		}
+	/** 武器种类（和 {@code ToolPicker.WEAPON_KINDS} 对应；剑 / 斧与工具重叠）。 */
+	private static boolean isWeaponKind(String kind) {
+		return switch (kind) {
+			case "sword", "axe", "bow", "crossbow", "trident", "mace" -> true;
+			default -> false;
+		};
 	}
 
-	private static AxiomMode readAxiomMode() {
-		fi.dy.masa.malilib.config.IConfigOptionListEntry value = BLOCK_PICKER_AXIOM_MODE.getOptionListValue();
-		return value instanceof AxiomMode mode ? mode : AxiomMode.YIELD;
-	}
-
-	private static ConfigBoolean bool(String name, boolean def, String comment) {
-		ConfigBoolean option = new ConfigBoolean(name, def, comment);
-		option.translatedName(Reference.CONFIG_KEY_PREFIX + name);
-		return option;
-	}
-
-	private static ConfigDouble dbl(String name, double def, double min, double max, String comment) {
-		ConfigDouble option = new ConfigDouble(name, def, min, max, comment);
-		option.translatedName(Reference.CONFIG_KEY_PREFIX + name);
-		return option;
-	}
-
-	private static ConfigInteger integer(String name, int def, int min, int max, String comment) {
-		ConfigInteger option = new ConfigInteger(name, def, min, max, comment);
-		option.translatedName(Reference.CONFIG_KEY_PREFIX + name);
-		return option;
-	}
-
-	private static fi.dy.masa.malilib.config.options.ConfigString str(String name, String def, String comment) {
-		fi.dy.masa.malilib.config.options.ConfigString option = new fi.dy.masa.malilib.config.options.ConfigString(name, def, comment);
-		option.translatedName(Reference.CONFIG_KEY_PREFIX + name);
-		return option;
-	}
-
-	private static ConfigStringList strList(String name, ImmutableList<String> def, String comment) {
-		ConfigStringList option = new ConfigStringList(name, def, comment);
-		option.translatedName(Reference.CONFIG_KEY_PREFIX + name);
-		return option;
-	}
-
-	private static fi.dy.masa.malilib.config.options.ConfigOptionList optionList(
-			String name, fi.dy.masa.malilib.config.IConfigOptionListEntry def, String comment) {
-		fi.dy.masa.malilib.config.options.ConfigOptionList option =
-				new fi.dy.masa.malilib.config.options.ConfigOptionList(name, def, comment);
-		option.translatedName(Reference.CONFIG_KEY_PREFIX + name);
-		return option;
+	private static ToolSpec copySpec(ToolSpec spec) {
+		ToolSpec copy = new ToolSpec(spec.item);
+		copy.enabled = spec.enabled;
+		copy.enchantments = new LinkedHashMap<>(spec.enchantments);
+		return copy;
 	}
 }

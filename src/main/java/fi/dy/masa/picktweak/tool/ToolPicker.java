@@ -4,6 +4,7 @@ import fi.dy.masa.picktweak.config.Configs;
 import fi.dy.masa.picktweak.inv.InventoryManager;
 import fi.dy.masa.picktweak.pick.ClientPicker;
 import fi.dy.masa.picktweak.pick.ClientRaycast;
+import fi.dy.masa.picktweak.util.BlockItems;
 import fi.dy.masa.picktweak.util.PbpText;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -17,12 +18,13 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.decoration.painting.PaintingVariant;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.BrushItem;
 import net.minecraft.world.item.FishingRodItem;
@@ -145,21 +147,19 @@ public final class ToolPicker {
 				return;
 			}
 			ItemStack generated = generateTool(level, config, kind, false);
-			if (generated.isEmpty()) {
+			if (generated.isEmpty() || !InventoryManager.giveCreative(generated)) {
 				PbpText.chat(Component.translatable("picktweak.message.generate_failed"));
 				return;
 			}
-			InventoryManager.giveCreative(generated);
 			PbpText.chat(Component.translatable("picktweak.message.generated", generated.getHoverName()));
 			return;
 		}
 
 		int best = findBestTool(player, state, config, kind);
-		if (best < 0) {
+		if (best < 0 || !InventoryManager.selectOrSwap(best)) {
 			PbpText.chat(Component.translatable("picktweak.message.no_tool_in_inventory"));
 			return;
 		}
-		InventoryManager.selectOrSwap(best);
 	}
 
 	private static void handleEntity(Minecraft mc, ClientLevel level, LocalPlayer player, Configs.ToolPicker config, Entity entity) {
@@ -169,21 +169,19 @@ public final class ToolPicker {
 				return;
 			}
 			ItemStack generated = generateTool(level, config, kind, true);
-			if (generated.isEmpty()) {
+			if (generated.isEmpty() || !InventoryManager.giveCreative(generated)) {
 				PbpText.chat(Component.translatable("picktweak.message.generate_failed"));
 				return;
 			}
-			InventoryManager.giveCreative(generated);
 			PbpText.chat(Component.translatable("picktweak.message.generated", generated.getHoverName()));
 			return;
 		}
 
 		int best = findBestWeapon(player, entity, config);
-		if (best < 0) {
+		if (best < 0 || !InventoryManager.selectOrSwap(best)) {
 			PbpText.chat(Component.translatable("picktweak.message.no_weapon_in_inventory"));
 			return;
 		}
-		InventoryManager.selectOrSwap(best);
 	}
 
 	/**
@@ -196,10 +194,18 @@ public final class ToolPicker {
 				.canSend(fi.dy.masa.picktweak.net.PbpPayloads.GiveTool.TYPE)) {
 			return false;
 		}
+		// 按 weapon 标志选择预设表；武器在 weapons 表里查不到时回落到 tools 表（sword / axe 两边共用）。
+		Configs.ToolSpec spec = findSpec(config, kind, weapon);
+		Map<String, Integer> enchantments = spec == null
+				? Map.of()
+				: new LinkedHashMap<>(spec.enchantments);
+		if (!config.allowIncompatible) {
+			enchantments = resolveConflicts(enchantments, config);
+		}
 		StringBuilder json = new StringBuilder();
 		json.append("{\"kind\":\"").append(kind).append("\",\"weapon\":").append(weapon).append(",\"enchantments\":{");
 		boolean first = true;
-		for (Map.Entry<String, Integer> entry : config.tools.getOrDefault(kind, new Configs.ToolSpec()).enchantments.entrySet()) {
+		for (Map.Entry<String, Integer> entry : enchantments.entrySet()) {
 			if (!first) {
 				json.append(',');
 			}
@@ -217,7 +223,9 @@ public final class ToolPicker {
 		Identifier id = BuiltInRegistries.BLOCK.getKey(state.getBlock());
 		String path = id == null ? "" : id.toString();
 
-		if (config.pickFluid && !state.getFluidState().isEmpty()) {
+		// 只有能舀成桶的方块才算桶（水 / 岩浆 / 粉雪）；
+		// 仅 waterlogged 的普通方块（台阶、箱子等）不能被舀，按原来的工具走。
+		if (config.pickFluid && BlockItems.fluidBucketItem(state) != null) {
 			return "bucket";
 		}
 		if (state.getBlock() instanceof BrushableBlock) {
@@ -247,12 +255,16 @@ public final class ToolPicker {
 
 	/** 在背包中找出对某个方块最合适的工具。 */
 	public static int findBestTool(LocalPlayer player, BlockState state, Configs.ToolPicker config, String kind) {
-		net.minecraft.world.entity.player.Inventory inventory = player.getInventory();
+		Inventory inventory = player.getInventory();
 		boolean searchContainers = Configs.inventory.searchContainers;
 		int bestSlot = -1;
 		double bestScore = Double.NEGATIVE_INFINITY;
 
-		for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
+		// 只扫主背包 + 快捷栏（0..35），盔甲 / 副手槽不参与；锁定的快捷栏槽位跳过
+		for (int slot = 0; slot < Inventory.INVENTORY_SIZE; slot++) {
+			if (InventoryManager.isLocked(slot)) {
+				continue;
+			}
 			ItemStack stack = inventory.getItem(slot);
 			if (stack.isEmpty()) {
 				continue;
@@ -333,19 +345,26 @@ public final class ToolPicker {
 		return score;
 	}
 
-	/** 附魔带来的评分加成。 */
+	/** 附魔偏好关闭时的中性权重：只表示「有这个附魔」，不构成偏好。 */
+	private static final double NEUTRAL_ENCHANT_WEIGHT = 2.0D;
+
+	/** 附魔带来的评分加成；三个偏好开关分别控制对应附魔的权重。 */
 	private static double enchantScore(ItemStack stack, Configs.ToolPicker config) {
 		HolderLookup.RegistryLookup<Enchantment> lookup = enchantLookup();
 		if (lookup == null) {
 			return 0.0D;
 		}
 		double score = 0.0D;
-		score += level(lookup, stack, "silk_touch") * (config.preferSilkTouch ? 30.0D : 2.0D);
-		score += level(lookup, stack, "fortune") * (config.preferFortune ? 20.0D : 2.0D);
-		score += level(lookup, stack, "efficiency") * (config.preferEfficiency ? 15.0D : 2.0D);
+		score += level(lookup, stack, "silk_touch") * preferenceWeight(config.preferSilkTouch, 30.0D);
+		score += level(lookup, stack, "fortune") * preferenceWeight(config.preferFortune, 20.0D);
+		score += level(lookup, stack, "efficiency") * preferenceWeight(config.preferEfficiency, 15.0D);
 		score += level(lookup, stack, "unbreaking") * 3.0D;
 		score += level(lookup, stack, "mending") * 5.0D;
 		return score;
+	}
+
+	private static double preferenceWeight(boolean preferred, double preferredWeight) {
+		return preferred ? preferredWeight : NEUTRAL_ENCHANT_WEIGHT;
 	}
 
 	private static int level(HolderLookup.RegistryLookup<Enchantment> lookup, ItemStack stack, String id) {
@@ -355,12 +374,16 @@ public final class ToolPicker {
 
 	/** 在背包中找出对某个实体最合适的武器。 */
 	public static int findBestWeapon(LocalPlayer player, Entity entity, Configs.ToolPicker config) {
-		net.minecraft.world.entity.player.Inventory inventory = player.getInventory();
+		Inventory inventory = player.getInventory();
 		int bestSlot = -1;
 		double bestScore = Double.NEGATIVE_INFINITY;
 		String preferred = preferredWeapon(config, entity);
 
-		for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
+		// 只扫主背包 + 快捷栏（0..35），盔甲 / 副手槽不参与；锁定的快捷栏槽位跳过
+		for (int slot = 0; slot < Inventory.INVENTORY_SIZE; slot++) {
+			if (InventoryManager.isLocked(slot)) {
+				continue;
+			}
 			ItemStack stack = inventory.getItem(slot);
 			if (stack.isEmpty()) {
 				continue;
@@ -444,15 +467,11 @@ public final class ToolPicker {
 	}
 
 	private static boolean isUndead(Entity entity) {
-		EntityType<?> type = entity.getType();
-		return type != null && BuiltInRegistries.ENTITY_TYPE.getKey(type) != null
-				&& BuiltInRegistries.ENTITY_TYPE.getKey(type).getPath().contains("skeleton");
+		return entity.getType().builtInRegistryHolder().is(EntityTypeTags.UNDEAD);
 	}
 
 	private static boolean isArthropod(Entity entity) {
-		EntityType<?> type = entity.getType();
-		return type != null && BuiltInRegistries.ENTITY_TYPE.getKey(type) != null
-				&& BuiltInRegistries.ENTITY_TYPE.getKey(type).getPath().contains("spider");
+		return entity.getType().builtInRegistryHolder().is(EntityTypeTags.ARTHROPOD);
 	}
 
 	private static boolean isAquatic(Entity entity) {
@@ -476,12 +495,8 @@ public final class ToolPicker {
 
 	/** 按配置生成一件带附魔的工具 / 武器。 */
 	public static ItemStack generateTool(ClientLevel level, Configs.ToolPicker config, String kind, boolean weapon) {
-		Map<String, Configs.ToolSpec> source = weapon ? config.weapons : config.tools;
-		Configs.ToolSpec spec = source.get(kind);
+		Configs.ToolSpec spec = findSpec(config, kind, weapon);
 		if (spec == null || !spec.enabled) {
-			spec = source.get(kind);
-		}
-		if (spec == null) {
 			return ItemStack.EMPTY;
 		}
 		Identifier id = Identifier.tryParse(spec.item);
@@ -517,6 +532,20 @@ public final class ToolPicker {
 			});
 		}
 		return stack;
+	}
+
+	/**
+	 * 取某个工具 / 武器的预设配置。
+	 *
+	 * <p>武器优先查 {@code config.weapons}；查不到时回落到 {@code config.tools}
+	 * （剑 / 斧同时出现在两张表里，这样创造模式的武器拾取也能生成）。</p>
+	 */
+	private static Configs.ToolSpec findSpec(Configs.ToolPicker config, String kind, boolean weapon) {
+		Configs.ToolSpec spec = (weapon ? config.weapons : config.tools).get(kind);
+		if (spec == null && weapon) {
+			spec = config.tools.get(kind);
+		}
+		return spec;
 	}
 
 	/**

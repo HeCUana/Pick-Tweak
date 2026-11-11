@@ -77,7 +77,7 @@ png += chunk(b"IDAT", zlib.compress(raw, 9))
 png += chunk(b"IEND", b"")
 
 out = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "src", "main", "resources",
-                   "assets", "pickblockpro", "icon.png")
+                   "assets", "picktweak", "icon.png")
 out = os.path.normpath(out)
 os.makedirs(os.path.dirname(out), exist_ok=True)
 with open(out, "wb") as f:

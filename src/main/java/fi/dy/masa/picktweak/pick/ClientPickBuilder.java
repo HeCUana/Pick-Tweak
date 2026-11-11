@@ -1,5 +1,6 @@
 package fi.dy.masa.picktweak.pick;
 
+import fi.dy.masa.picktweak.config.Configs;
 import fi.dy.masa.picktweak.util.BlockItems;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
@@ -122,11 +123,14 @@ public final class ClientPickBuilder {
 			}
 			return stack;
 		}
-		Identifier id = BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType());
-		if (id != null) {
-			Item head = HEADS.get(id.toString());
-			if (head != null) {
-				return new ItemStack(head);
+		// 与服务端 ServerPickService 保持一致：只有配置要求时才优先给生物头颅
+		if (Configs.blockPicker.preferEntityHeads) {
+			Identifier id = BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType());
+			if (id != null) {
+				Item head = HEADS.get(id.toString());
+				if (head != null) {
+					return new ItemStack(head);
+				}
 			}
 		}
 		return ItemStack.EMPTY;

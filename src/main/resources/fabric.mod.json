@@ -3,7 +3,7 @@
 	"id": "picktweak",
 	"version": "${version}",
 	"name": "Pick Tweak",
-	"description": "masa 系列的拾取增强：远距离拾取方块 / 实体 / NBT / 状态属性，ID 复制，智能选工具与武器。服务端提供权威拾取服务，客户端可选安装 MaLiLib 获得配置面板。",
+	"description": "masa 系列的拾取增强：远距离拾取方块 / 实体 / NBT / 状态属性，ID 复制，智能选工具与武器。服务端提供权威拾取服务（不依赖 MaLiLib）；客户端安装 MaLiLib 可使用配置面板与自定义热键，未安装时使用默认配置与原版按键。",
 	"authors": [
 		"HeCUan"
 	],
@@ -24,7 +24,6 @@
 	"mixins": [
 		"picktweak.mixins.json"
 	],
-	"accessWidener": "picktweak.accesswidener",
 	"depends": {
 		"fabricloader": ">=0.20.1",
 		"minecraft": "~26.3",
