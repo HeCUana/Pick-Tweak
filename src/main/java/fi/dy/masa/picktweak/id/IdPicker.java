@@ -24,13 +24,10 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -118,18 +115,9 @@ public final class IdPicker {
 		if (!config.includeStateProperties) {
 			return base;
 		}
-		List<String> properties = new ArrayList<>();
-		for (Property<?> property : state.getProperties()) {
-			String name = property.getName();
-			if (isBlacklisted(name, config.statePropertyBlacklist)) {
-				continue;
-			}
-			properties.add(name + "=" + propertyName(state, property));
-		}
-		if (properties.isEmpty()) {
-			return base;
-		}
-		return base + "[" + String.join(",", properties) + "]";
+		// 状态属性文本与 Alt + 中键复制共用 BlockPicker.blockStateText（含属性黑名单）
+		String properties = BlockPicker.blockStateText(state, config.statePropertyBlacklist);
+		return properties.isEmpty() ? base : base + "[" + properties + "]";
 	}
 
 	/** 实体 ID 文本。 */
@@ -184,20 +172,4 @@ public final class IdPicker {
 		return withNamespace ? id.toString() : id.getPath();
 	}
 
-	@SuppressWarnings({"rawtypes", "unchecked"})
-	private static String propertyName(BlockState state, Property<?> property) {
-		return ((Property) property).getName(state.getValue(property));
-	}
-
-	private static boolean isBlacklisted(String name, List<String> blacklist) {
-		if (blacklist == null) {
-			return false;
-		}
-		for (String entry : blacklist) {
-			if (entry != null && entry.equalsIgnoreCase(name)) {
-				return true;
-			}
-		}
-		return false;
-	}
 }

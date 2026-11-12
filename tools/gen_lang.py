@@ -42,6 +42,9 @@ add("picktweak.config.blockPickerCopyNbt", "Ctrl + 中键复制 NBT", "Ctrl + �
     "Ctrl + clic du milieu copie le NBT", "Ctrl + средняя кнопка копирует NBT")
 add("picktweak.config.blockPickerShowCopiedNbt", "在聊天栏显示复制的 NBT", "在聊天欄顯示複製的 NBT", "Show the copied NBT in the chat box",
     "Afficher le NBT copié dans le chat", "Показывать скопированный NBT в чате")
+add("picktweak.config.blockPickerCopyState", "Alt + 中键复制方块状态", "Alt + 中鍵複製方塊狀態",
+    "Alt + middle click copies the block state", "Alt + clic du milieu copie l'état du bloc",
+    "Alt + средняя кнопка копирует состояние блока")
 add("picktweak.config.blockPickerAxiomMode", "与 Axiom 共存方式", "與 Axiom 共存方式", "How to coexist with Axiom",
     "Coexistence avec Axiom", "Совместная работа с Axiom")
 add("picktweak.config.blockEntityNbtBlacklist", "方块实体 NBT 黑名单", "方塊實體 NBT 黑名單", "Block entity NBT blacklist",
@@ -192,6 +195,12 @@ add("picktweak.message.nbt_copied", "已把 %s 的 NBT 复制到剪贴板。", "
     "NBT de %s copié dans le presse-papiers.", "NBT сущности %s скопирован в буфер обмена.")
 add("picktweak.message.no_nbt", "%s 没有可复制的 NBT。", "%s 沒有可複製的 NBT。", "%s has no NBT to copy.",
     "%s n'a aucun NBT à copier.", "У %s нет NBT для копирования.")
+add("picktweak.message.state_copied", "已复制 %s 的方块状态：%s", "已複製 %s 的方塊狀態：%s",
+    "Copied the block state of %s: %s", "État du bloc de %s copié : %s",
+    "Скопировано состояние блока %s: %s")
+add("picktweak.message.no_block_state", "%s 没有可复制的方块状态。", "%s 沒有可複製的方塊狀態。",
+    "%s has no block state to copy.", "%s n'a aucun état de bloc à copier.",
+    "У %s нет состояния блока для копирования.")
 
 # ---------------- 命令 ----------------
 add("picktweak.command.reload_success", "已重新载入自定义映射。", "已重新載入自訂映射。", "Custom mappings reloaded.",

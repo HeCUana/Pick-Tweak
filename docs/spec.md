@@ -1,7 +1,7 @@
 # Pick Tweak — 功能文档
 
 > 双端拾取增强：服务端权威校验与发放，客户端负责输入、界面与本地回退。
-> 适用版本：Minecraft 26.3 / Fabric（1.0.0-beta.5）。
+> 适用版本：Minecraft 26.3 / Fabric（1.0.0-beta.6）。
 
 ---
 
@@ -9,10 +9,10 @@
 
 Pick Tweak（模组 id `picktweak`）扩展了 Minecraft 原版的中键拾取与工具选择能力：
 
-- **拿得更准**：能在原版交互距离之外拾取方块与实体，并把方块状态、方块实体数据、实体 NBT 一并带出来。
+- **拿得更准**：能在原版交互距离之外拾取方块与实体；按住 Ctrl / Alt 时把实体数据、方块实体 NBT、方块状态写进物品，放下即可还原。
 - **拿得更全**：能识别画作、物品框、下落方块、玩家头颅与生物头颅，以及太阳 / 月亮。
 - **给得更准**：自动挑出当前目标的最优工具 / 武器，按附魔收益和耐久打分，而不是「有没有对应工具」。
-- **看得更清**：一键复制方块 / 实体 / 物品的 ID 与 NBT，可直接粘到命令或文档里。
+- **看得更清**：一键复制方块 / 实体 / 物品的 ID、NBT 与方块状态文本，可直接粘到命令或文档里。
 - **双端安全**：物品由服务端权威计算与发放，距离、NBT、发放与限流全部由服务端裁定。
 
 ---
@@ -34,14 +34,14 @@ Pick Tweak（模组 id `picktweak`）扩展了 Minecraft 原版的中键拾取�
 2. 命中方块 / 实体后，客户端发送拾取请求（方块：位置 + 是否附带数据 / 状态；实体：实体 id + 是否附带数据）。
 3. 服务端先过每玩家的令牌桶限流（`rateLimitPerSecond`），超速请求被静默丢弃。
 4. 再校验：目标所在区块已加载、距离不超过 `maxPickDistance` / `maxEntityPickDistance`、`allowIncludeData` / `allowStateProperties` 是否允许附带数据、天体请求是否允许（`allowCelestial`）。
-5. 服务端计算结果：先查 `picktweak-overrides.json` 自定义映射，再按原版拾取 / 流体桶 / 头颅等规则生成物品，并按需附加 NBT 与方块状态。
+5. 服务端计算结果：先查 `picktweak-overrides.json` 自定义映射，再按原版拾取 / 流体桶 / 头颅 / 刷怪蛋等规则生成物品；按住 Ctrl 时写入方块实体 NBT（方块）或 `minecraft:entity_data` / `painting_variant`（实体），按住 Alt 时把方块状态写入 `minecraft:block_state` 组件。
 6. 服务端把物品交给玩家：背包里已有完全相同的物品则直接切换；否则按 `giveInSurvival` 与创造模式决定是否真正发放（发放时同步手持槽位与背包）。
 7. 客户端按 `showPickFeedback` 决定是否在聊天栏提示。
 
 ### 2.3 服务端未安装时的回退
 
-- 方块 / 实体拾取退回客户端本地计算，Ctrl / Alt 修饰键仍然生效；创造模式可在本地生成物品放入背包，
-  生存模式只在背包里已有同类物品时切换，不会凭空发放。
+- 方块 / 实体拾取退回客户端本地计算，Ctrl / Alt 修饰键仍然生效（实体数据 / 方块状态同样写进物品）；
+  创造模式可在本地生成物品放入背包，生存模式只在背包里已有同类物品时切换，不会凭空发放。
 - **太阳 / 月亮拾取与 `/pbp give` 发放需要服务端**；服务端不在时仅提示（创造模式 `/pbp give` 可本地生成）。
 - 带 Ctrl / Alt 拾取但服务端没装时会提示一次「服务端未安装，已改用客户端本地拾取」（30 秒节流）。
 
@@ -60,13 +60,13 @@ Pick Tweak（模组 id `picktweak`）扩展了 Minecraft 原版的中键拾取�
 
 ### 3.1 拾取目标
 
-| 目标 | 结果 |
+| 目标 | 普通拾取（不按修饰键） |
 |---|---|
 | 普通方块 | 对应物品 |
 | 流体方块（含粉雪） | 对应材质的桶（而非流体方块本身），可在服务端关闭 `pickFluids` |
-| 实体 | 该实体的拾取物品；玩家 → 玩家头颅（含皮肤） |
-| 生物 | 默认优先头颅（僵尸 → 僵尸头、骷髅 → 骷髅头等），可在服务端关闭 `preferEntityHeads` |
-| 物品框 / 画作 | 物品框 / 画作物品，Ctrl 时附加名称 |
+| 玩家 | 带皮肤玩家头颅 |
+| 生物 | 常见生物默认给头颅（僵尸 → 僵尸头、骷髅 → 骷髅头等，`preferEntityHeads` 默认开）；其余生物给对应刷怪蛋，没有刷怪蛋的退回原版拾取物 |
+| 物品展示框 / 画作 | 展示框 / 画作本体物品 |
 | 下落中的方块 | 该方块的物品（而不是空气） |
 | 太阳 / 月亮 | 服务端配置的物品（默认 `minecraft:light` / `minecraft:glowstone`），需要服务端且 `allowCelestial = true` |
 
@@ -74,10 +74,13 @@ Pick Tweak（模组 id `picktweak`）扩展了 Minecraft 原版的中键拾取�
 
 | 按键 | 效果 |
 |---|---|
-| **Ctrl + 中键** | 把目标的 NBT 复制到剪贴板（方块实体：箱子内容 / 告示牌 / 头颅；实体：装备、药水、属性等完整 NBT） |
-| **Alt + 中键** | 给拾取到的物品附加方块状态属性（朝向、台阶朝向、开关状态等） |
+| **Ctrl + 中键** | 把目标数据写进物品并复制 NBT 到剪贴板：方块 → 方块实体 NBT；生物 → 对应刷怪蛋 + `minecraft:entity_data`（生命值 / 装备 / AI 状态等，放下即生成同样状态的生物）；盔甲架 → 盔甲架物品 + `entity_data`（姿势 / 装备）；展示框 → 展示框物品 + `entity_data`（框内物品 / 旋转 / 隐形 / 固定）；画作 → 画作物品 + `painting_variant`（确切变种）；玩家 → 带皮肤玩家头颅；无刷怪蛋的实体退回其拾取物品并尽量附带 `entity_data` |
+| **Alt + 中键** | 把方块状态写进物品的 `minecraft:block_state` 组件（楼梯朝向、营火点燃、台阶类型等，放下可还原），同时把状态文本（如 `facing=north,half=top`）复制到剪贴板 |
+| **Ctrl + Alt + 中键** | 同时附加方块实体 NBT 与方块状态 |
 
+- `entity_data` 中会剔除坐标 / 速度 / UUID / 朝向等「放置时才决定」的字段，放下实体不会瞬移到旧位置。
 - 剪贴板里是单行 SNBT（已去掉黑名单键），可直接粘进 `/data` 或 `/summon`；开启 `showCopiedNbt` 时聊天栏同时打印缩进版。
+- `blockPickerCopyState`（默认开）控制 Alt 是否把状态文本复制到剪贴板；关闭后物品仍带 `block_state`，只是不复制文本。
 - 修饰键本身是可改键的 MaLiLib 热键（默认 `LEFT_CONTROL + 中键`、`LEFT_ALT + 中键`），清空绑定即可关闭对应功能。
 
 ### 3.3 拾取范围
@@ -85,12 +88,13 @@ Pick Tweak（模组 id `picktweak`）扩展了 Minecraft 原版的中键拾取�
 - 方块拾取范围与实体拾取范围分别可配（生存模式）。
 - 可选择使用「玩家交互距离」而非固定值。
 - 创造模式可单独使用更大的范围。
-- 服务端另有 `maxPickDistance` / `maxEntityPickDistance` 上限（默认 100，可配范围 1`512，见 10.3）。
+- 服务端另有 `maxPickDistance` / `maxEntityPickDistance` 上限（默认 100，可配范围 1~512，见 10.3）。
 
 ### 3.4 反馈
 
 - `showPickFeedback`：拾取后显示拾取目标（以及 +NBT / +状态）。
 - `showCopiedNbt`：Ctrl 复制 NBT 时在聊天栏打印缩进版。
+- Alt 复制状态成功时提示 `state_copied`（方块名 + 状态文本）；目标没有状态属性时提示 `no_block_state`。
 - 服务端未安装且使用修饰键时提示一次（30 秒内不重复）。
 
 ---
@@ -265,14 +269,15 @@ NBT 输出由配置项 `includeNbt` 与 NBT 修饰键异或决定：默认 `incl
 
 - 需要 **MaLiLib**：装了才有面板（默认 K）与热键改键；没装也能用默认配置与默认 V / G 按键。
 - 面板分组：**区块拾取**、**ID 拾取**、**工具拾取**、**背包**、**创造模式**、**热键**（以及「全部」页）。
+- 「区块拾取」页可配置 `blockPickerCopyState`（Alt 是否复制状态文本，默认开）、`preferEntityHeads`（普通拾取是否优先头颅，默认开）、NBT / 状态黑名单等。
 - 面板内可直接搜索、改键、改值，保存后立即生效。
 
 ### 10.3 服务端配置项（`picktweak-server.json`）
 
 | 配置项 | 默认值 | 说明 |
 |---|---|---|
-| `maxPickDistance` | `100.0` | 服务端允许的最大方块拾取距离，夹取范围 1`512，超出静默忽略 |
-| `maxEntityPickDistance` | `100.0` | 服务端允许的最大实体拾取距离，夹取范围 1`512 |
+| `maxPickDistance` | `100.0` | 服务端允许的最大方块拾取距离，夹取范围 1~512，超出静默忽略 |
+| `maxEntityPickDistance` | `100.0` | 服务端允许的最大实体拾取距离，夹取范围 1~512 |
 | `allowIncludeData` | `true` | 是否允许拾取时附带方块实体 / 实体 NBT |
 | `allowStateProperties` | `true` | 是否允许拾取时附带方块状态属性 |
 | `allowClientGive` | `false` | 是否允许客户端请求发放工具 / 武器 |
@@ -280,19 +285,19 @@ NBT 输出由配置项 `includeNbt` 与 NBT 修饰键异或决定：默认 `incl
 | `requireOpForGive` | `true` | 发放工具 / 武器是否要求 OP（26.3 moderator 权限，等价旧版等级 ≥ 2） |
 | `requireOpForReload` | `true` | 客户端 reload 请求是否要求 OP（同上） |
 | `allowCelestial` | `true` | 是否允许拾取太阳 / 月亮 |
-| `rateLimitPerSecond` | `20` | 每玩家每秒允许的拾取 / 发放 / 天体请求数，夹取范围 1`200，超出即丢弃 |
+| `rateLimitPerSecond` | `20` | 每玩家每秒允许的拾取 / 发放 / 天体请求数，夹取范围 1~200，超出即丢弃 |
 | `preferEntityHeads` | `true` | 拾取生物时优先给头颅而不是刷怪蛋 |
 | `pickFluids` | `true` | 拾取流体 / 粉雪时发放装满的桶 |
 | `sunItem` | `minecraft:light` | 拾取太阳时发放的物品 |
 | `moonItem` | `minecraft:glowstone` | 拾取月亮时发放的物品（26.3 没有月亮石，默认萤石） |
-| `maxEnchantLevel` | `255` | 服务端发放工具 / 武器时允许的最高附魔等级，夹取范围 1`255 |
+| `maxEnchantLevel` | `255` | 服务端发放工具 / 武器时允许的最高附魔等级，夹取范围 1~255 |
 | `toolItems` / `weaponItems` | 钻石工具 / 对应武器表 | 各类工具 / 武器发放时使用的物品；非法 ID 会回落默认并记录日志 |
 
 ### 10.4 权限与安全
 
 - **服务端权威**：距离、NBT / 状态开关、发放策略都以服务端配置为准，客户端配置无法绕过。
 - **OP 校验**：`requireOpForGive` / `requireOpForReload` 默认开启（26.3 的 moderator 权限，等价旧版 OP 等级 ≥ 2）；非 OP 请求被拒绝并提示。
-- **限流**：每玩家令牌桶限流 `rateLimitPerSecond`（默认 20，可配 1`200），超速请求直接丢弃。
+- **限流**：每玩家令牌桶限流 `rateLimitPerSecond`（默认 20，可配 1~200），超速请求直接丢弃。
 - **发放上限**：附魔等级受 `maxEnchantLevel` 限制（默认 255），只接受注册表中真实存在的附魔。
 - **默认拒绝**：`allowClientGive`、`giveInSurvival`、`requireOpForGive`、`requireOpForReload` 默认即安全值；专用服务器确认信任后再按需放开。
 - **映射文件两端各自读取**：专用服务器上服务端只认服务端自己的 `picktweak-overrides.json`。
@@ -328,9 +333,12 @@ NBT 输出由配置项 `includeNbt` 与 NBT 修饰键异或决定：默认 `incl
 
 | 你想做的事 | 用什么 |
 |---|---|
-| 快速拿到一个楼梯方块 | 中键拾取（带朝向信息） |
+| 快速拿到一个楼梯方块 | 中键拾取（带朝向信息）；Alt + 中键还会把朝向写进物品并复制状态文本 |
 | 复制一个箱子的内容 | Ctrl + 中键拾取箱子 |
-| 复制某个生物的完整 NBT | Ctrl + 中键拾取生物 |
+| 复制某个生物的完整 NBT | Ctrl + 中键拾取生物（会得到带 `entity_data` 的刷怪蛋） |
+| 复制一个穿戴装备的盔甲架 | Ctrl + 中键拾取（盔甲架物品 + `entity_data`） |
+| 把画作的确切变种取下来 | Ctrl + 中键拾取画作（`painting_variant` 组件） |
+| 把营火点燃 / 楼梯朝向状态带进物品 | Alt + 中键拾取（写入 `block_state`，放置即还原） |
 | 拿一个箱子里的潜影盒内容 | 中键拾取潜影盒 → Ctrl 复制 NBT |
 | 查某个方块的状态值 | ID 拾取 |
 | 复制物品 ID 到命令框 | 聊天框内 Ctrl + 数字键 |
@@ -341,4 +349,4 @@ NBT 输出由配置项 `includeNbt` 与 NBT 修饰键异或决定：默认 `incl
 
 ---
 
-*本文档描述 1.0.0-beta.5 的功能行为，命令、配置项与默认值以实际生成的配置文件为准。*
+*本文档描述 1.0.0-beta.6 的功能行为，命令、配置项与默认值以实际生成的配置文件为准。*

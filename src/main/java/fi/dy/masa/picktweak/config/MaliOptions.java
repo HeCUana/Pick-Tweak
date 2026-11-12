@@ -54,6 +54,8 @@ public final class MaliOptions {
 			Configs.DEFAULT_BLOCK_PICKER_COPY_NBT, "Ctrl + middle click copies the NBT of the target to the clipboard");
 	public static final ConfigBoolean BLOCK_PICKER_SHOW_COPIED_NBT = bool("blockPickerShowCopiedNbt",
 			Configs.DEFAULT_BLOCK_PICKER_SHOW_COPIED_NBT, "Print the copied NBT in the chat box as well");
+	public static final ConfigBoolean BLOCK_PICKER_COPY_STATE = bool("blockPickerCopyState",
+			Configs.DEFAULT_BLOCK_PICKER_COPY_STATE, "Alt + middle click copies the block state to the clipboard as well");
 	public static final ConfigOptionList BLOCK_PICKER_AXIOM_MODE = optionList("blockPickerAxiomMode",
 			AxiomModeEntry.YIELD, "How to behave when Axiom is installed");
 	public static final ConfigStringList BLOCK_ENTITY_NBT_BLACKLIST = strList("blockEntityNbtBlacklist",
@@ -160,7 +162,7 @@ public final class MaliOptions {
 			BLOCK_PICKER_USE_INTERACTION_RANGE, BLOCK_PICKER_PICK_BLOCKS, BLOCK_PICKER_PICK_ENTITIES,
 			BLOCK_PICKER_PICK_FLUIDS, BLOCK_PICKER_PICK_LIGHT_SOURCES, BLOCK_PICKER_PREFER_ENTITY_HEADS,
 			BLOCK_PICKER_TAKE_OVER_LITEMATICA, BLOCK_PICKER_SHOW_FEEDBACK,
-			BLOCK_PICKER_COPY_NBT, BLOCK_PICKER_SHOW_COPIED_NBT, BLOCK_PICKER_AXIOM_MODE,
+			BLOCK_PICKER_COPY_NBT, BLOCK_PICKER_SHOW_COPIED_NBT, BLOCK_PICKER_COPY_STATE, BLOCK_PICKER_AXIOM_MODE,
 			BLOCK_ENTITY_NBT_BLACKLIST, STATE_PROPERTY_BLACKLIST, ENTITY_NBT_BLACKLIST,
 
 			ID_PICKER_ENABLED, ID_PICKER_RANGE, ID_PICKER_ENTITY_RANGE, ID_PICKER_CREATIVE_RANGE,
@@ -201,6 +203,7 @@ public final class MaliOptions {
 		bp.showPickFeedback = BLOCK_PICKER_SHOW_FEEDBACK.getBooleanValue();
 		bp.copyNbt = BLOCK_PICKER_COPY_NBT.getBooleanValue();
 		bp.showCopiedNbt = BLOCK_PICKER_SHOW_COPIED_NBT.getBooleanValue();
+		bp.copyState = BLOCK_PICKER_COPY_STATE.getBooleanValue();
 		bp.axiomMode = readAxiomMode();
 		bp.blockEntityNbtBlacklist = new ArrayList<>(BLOCK_ENTITY_NBT_BLACKLIST.getStrings());
 		bp.statePropertyBlacklist = new ArrayList<>(STATE_PROPERTY_BLACKLIST.getStrings());

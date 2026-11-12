@@ -43,6 +43,7 @@ public class SmokeTest {
 		Configs.installDefaults();
 		check("default snapshot", Configs.blockPicker.enabled && Configs.blockPicker.creativeRange == 100.0D
 						&& Configs.blockPicker.copyNbt && Configs.blockPicker.showCopiedNbt
+						&& Configs.blockPicker.copyState
 						&& Configs.inventory.lockedSlots.length == 9,
 				"creative=" + Configs.blockPicker.creativeRange);
 
@@ -260,6 +261,62 @@ public class SmokeTest {
 		check("fluid bucket: plain block has none",
 				stoneState != null && fi.dy.masa.picktweak.util.BlockItems.fluidBucketItem(stoneState) == null,
 				stoneState == null ? "no stone block" : "ok");
+
+		// 12. 实体拾取：刷怪蛋映射 + 实体 NBT 清理（纯逻辑）
+		try {
+			var zombieEgg = net.minecraft.world.item.SpawnEggItem.byId(net.minecraft.world.entity.EntityTypes.ZOMBIE);
+			var armorStandEgg = net.minecraft.world.item.SpawnEggItem.byId(net.minecraft.world.entity.EntityTypes.ARMOR_STAND);
+			var paintingEgg = net.minecraft.world.item.SpawnEggItem.byId(net.minecraft.world.entity.EntityTypes.PAINTING);
+			check("entity pick: mob spawn egg mapping",
+					zombieEgg.isPresent() && zombieEgg.get().value() == net.minecraft.world.item.Items.ZOMBIE_SPAWN_EGG,
+					String.valueOf(zombieEgg));
+			check("entity pick: armor stand / painting have no spawn egg",
+					armorStandEgg.isEmpty() && paintingEgg.isEmpty(), "ok");
+		} catch (Throwable t) {
+			System.out.println("    (skipped spawn egg mapping: item components are not bound in a bare JVM)");
+		}
+
+		CompoundTag entityTag = new CompoundTag();
+		entityTag.putString("id", "minecraft:zombie");
+		entityTag.putString("UUID", "0000-1111");
+		entityTag.putDouble("Health", 12.5D);
+		entityTag.putBoolean("NoAI", true);
+		entityTag.putString("Pos", "pos");
+		entityTag.putString("Motion", "motion");
+		entityTag.putString("equipment", "equipment");
+		CompoundTag sanitized = fi.dy.masa.picktweak.pick.EntityPickBuilder.sanitize(entityTag);
+		check("entity pick: volatile fields are dropped",
+				!sanitized.contains("id") && !sanitized.contains("UUID") && !sanitized.contains("Pos")
+						&& !sanitized.contains("Motion"),
+				String.valueOf(sanitized.keySet()));
+		check("entity pick: health / AI / equipment are kept",
+				sanitized.getDoubleOr("Health", 0.0D) == 12.5D && sanitized.getBooleanOr("NoAI", false)
+						&& sanitized.contains("equipment"),
+				String.valueOf(sanitized.keySet()));
+
+		CompoundTag frameSource = new CompoundTag();
+		frameSource.putString("Item", "item");
+		frameSource.putInt("ItemRotation", 3);
+		frameSource.putString("Facing", "north");
+		frameSource.putString("Pos", "pos");
+		CompoundTag frameTag = fi.dy.masa.picktweak.pick.EntityPickBuilder.frameTag(frameSource);
+		check("entity pick: item frame keeps only display data",
+				frameTag.contains("Item") && frameTag.getIntOr("ItemRotation", 0) == 3
+						&& !frameTag.contains("Facing") && !frameTag.contains("Pos"),
+				String.valueOf(frameTag.keySet()));
+
+		// 13. 方块状态文本（Alt 复制到剪贴板的内容）
+		var stairsState = net.minecraft.world.level.block.Blocks.OAK_STAIRS.defaultBlockState();
+		var campfireState = net.minecraft.world.level.block.Blocks.CAMPFIRE.defaultBlockState();
+		var stoneStateForText = net.minecraft.world.level.block.Blocks.STONE.defaultBlockState();
+		String stairsText = fi.dy.masa.picktweak.pick.BlockPicker.blockStateText(stairsState);
+		String campfireText = fi.dy.masa.picktweak.pick.BlockPicker.blockStateText(campfireState);
+		String stoneText = fi.dy.masa.picktweak.pick.BlockPicker.blockStateText(stoneStateForText);
+		check("block state text: stairs keep facing / half",
+				stairsText.contains("facing=") && stairsText.contains("half="), stairsText);
+		check("block state text: campfire keeps lit",
+				campfireText.contains("lit="), campfireText);
+		check("block state text: plain block is empty", stoneText.isEmpty(), stoneText);
 
 		System.out.println();
 		System.out.println(failures == 0 ? "ALL SMOKE TESTS PASSED" : (failures + " SMOKE TEST(S) FAILED"));

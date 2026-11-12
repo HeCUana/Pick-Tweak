@@ -16,6 +16,10 @@ import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.level.storage.TagValueOutput;
 import org.slf4j.Logger;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 /**
  * 拾取相关的通用小工具：方块状态属性、方块实体 NBT、实体 NBT。
  *
@@ -36,6 +40,58 @@ public final class BlockPicker {
 			properties = properties.with(property, state);
 		}
 		stack.set(DataComponents.BLOCK_STATE, properties);
+	}
+
+	/**
+	 * 方块状态属性的文本形式：{@code facing=north,half=top}（逗号分隔；没有属性时返回空串）。
+	 *
+	 * <p>供 Ctrl + 中键复制实体 NBT 的对应功能「Alt + 中键复制方块状态」使用，
+	 * ID 拾取也复用同一实现，保证两处输出格式一致。</p>
+	 */
+	public static String blockStateText(BlockState state) {
+		return blockStateText(state, null);
+	}
+
+	/**
+	 * 带属性名黑名单的状态属性文本（黑名单大小写不敏感，可传 {@code null}）。
+	 */
+	public static String blockStateText(BlockState state, Collection<String> blacklist) {
+		if (state == null) {
+			return "";
+		}
+
+		List<String> parts = new ArrayList<>();
+
+		for (Property<?> property : state.getProperties()) {
+			String name = property.getName();
+
+			if (isBlacklisted(name, blacklist)) {
+				continue;
+			}
+
+			parts.add(name + "=" + propertyValue(state, property));
+		}
+
+		return String.join(",", parts);
+	}
+
+	@SuppressWarnings({"rawtypes", "unchecked"})
+	private static String propertyValue(BlockState state, Property<?> property) {
+		return ((Property) property).getName(state.getValue(property));
+	}
+
+	private static boolean isBlacklisted(String name, Collection<String> blacklist) {
+		if (blacklist == null) {
+			return false;
+		}
+
+		for (String entry : blacklist) {
+			if (entry != null && entry.equalsIgnoreCase(name)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/** 把方块实体的数据写进物品。 */

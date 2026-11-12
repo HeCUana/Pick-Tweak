@@ -16,6 +16,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.HitResult;
 
 import java.util.List;
@@ -126,6 +127,11 @@ public final class ClientPicker {
 				copyBlockNbt(mc, pos);
 			}
 
+			if (alt) {
+				// Alt：把方块状态属性复制到剪贴板（例如 facing=north,half=top）。
+				copyBlockState(mc, pos, config);
+			}
+
 			if (serverSupport) {
 				ClientPlayNetworking.send(new PbpPayloads.PickBlock(pos, ctrl, alt));
 			} else {
@@ -202,6 +208,30 @@ public final class ClientPicker {
 		CompoundTag tag = BlockPicker.blockEntityNbt(mc.level, pos);
 		String label = BlockPicker.blockId(mc.level.getBlockState(pos));
 		copyNbt(tag, label, config.blockEntityNbtBlacklist, config.showCopiedNbt);
+	}
+
+	/**
+	 * Alt + 中键（方块）：把方块状态属性写进剪贴板。
+	 *
+	 * <p>物品本身已经通过 {@code block_state} 组件带上了状态（放置时会还原朝向、
+	 * 营火点燃状态等），这里再复制一份文本，方便直接粘到命令或文档里。</p>
+	 */
+	private static void copyBlockState(Minecraft mc, BlockPos pos, Configs.BlockPicker config) {
+		if (!config.copyState) {
+			return;
+		}
+
+		BlockState state = mc.level.getBlockState(pos);
+		String label = BlockPicker.blockId(state);
+		String text = BlockPicker.blockStateText(state);
+
+		if (text.isEmpty()) {
+			PbpText.chat(Component.translatable("picktweak.message.no_block_state", label));
+			return;
+		}
+
+		PbpText.copyToClipboard(text);
+		PbpText.chat(Component.translatable("picktweak.message.state_copied", label, text));
 	}
 
 	/**

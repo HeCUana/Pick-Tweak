@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mojang.logging.LogUtils;
 import fi.dy.masa.picktweak.Reference;
+import fi.dy.masa.picktweak.pick.EntityPickBuilder;
 import fi.dy.masa.picktweak.util.BlockItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
@@ -12,7 +13,6 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
@@ -25,7 +25,6 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.BlockItemStateProperties;
-import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -176,73 +175,17 @@ public final class ServerPickService {
 			stack = ItemStackParser.parse(override, level.registryAccess());
 		}
 		if (stack.isEmpty()) {
-			stack = specialEntityItem(entity, includeData, config);
-		}
-		if (stack.isEmpty()) {
-			ItemStack picked = entity.getPickResult();
-			if (picked != null) {
-				stack = picked.copy();
-			}
+			// 统一构建器（客户端回退同源）：
+			// 普通拾取按配置给头颅 / 刷怪蛋 / 本体物品；
+			// Ctrl 拾取则写入 minecraft:entity_data，放下后还原实体数据。
+			stack = EntityPickBuilder.build(level, entity,
+					includeData && config.allowIncludeData, config.preferEntityHeads);
 		}
 		if (stack.isEmpty()) {
 			return;
 		}
-		if (includeData && config.allowIncludeData) {
-			CompoundTag tag = entityNbt(level, entity);
-			if (tag != null && !tag.isEmpty()) {
-				stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
-			}
-		}
 		give(player, stack);
 	}
-
-	/** 玩家头颅 / 物品框 / 画作 / 生物头颅。 */
-	private static ItemStack specialEntityItem(Entity entity, boolean includeData, PbpServerConfig config) {
-		if (entity instanceof net.minecraft.world.entity.player.Player other) {
-			ItemStack stack = new ItemStack(net.minecraft.world.item.Items.PLAYER_HEAD);
-			try {
-				stack.set(DataComponents.PROFILE,
-						net.minecraft.world.item.component.ResolvableProfile.createResolved(other.getGameProfile()));
-			} catch (Exception ignored) {
-				// 皮肤拿不到时给一个普通头颅
-			}
-			return stack;
-		}
-		if (entity instanceof net.minecraft.world.entity.decoration.ItemFrame frame) {
-			ItemStack stack = new ItemStack(net.minecraft.world.item.Items.ITEM_FRAME);
-			ItemStack framed = frame.getItem();
-			if (includeData && !framed.isEmpty()) {
-				stack.set(DataComponents.CUSTOM_NAME, framed.getHoverName());
-			}
-			return stack;
-		}
-		if (entity instanceof net.minecraft.world.entity.decoration.painting.Painting painting) {
-			ItemStack picked = painting.getPickResult();
-			ItemStack stack = picked == null || picked.isEmpty()
-					? new ItemStack(net.minecraft.world.item.Items.PAINTING) : picked.copy();
-			if (includeData) {
-				Optional<net.minecraft.network.chat.Component> title = painting.getVariant().value().title();
-				title.ifPresent(component -> stack.set(DataComponents.CUSTOM_NAME, component));
-			}
-			return stack;
-		}
-		if (config.preferEntityHeads) {
-			Item head = HEADS.get(entityId(entity));
-			if (head != null) {
-				return new ItemStack(head);
-			}
-		}
-		return ItemStack.EMPTY;
-	}
-
-	/** 常见生物对应的头颅物品。 */
-	private static final Map<String, Item> HEADS = Map.of(
-			"minecraft:zombie", net.minecraft.world.item.Items.ZOMBIE_HEAD,
-			"minecraft:skeleton", net.minecraft.world.item.Items.SKELETON_SKULL,
-			"minecraft:creeper", net.minecraft.world.item.Items.CREEPER_HEAD,
-			"minecraft:piglin", net.minecraft.world.item.Items.PIGLIN_HEAD,
-			"minecraft:dragon", net.minecraft.world.item.Items.DRAGON_HEAD
-	);
 
 	/**
 	 * 处理拾取太阳 / 月亮的请求。
@@ -382,19 +325,6 @@ public final class ServerPickService {
 			properties = properties.with(property, state);
 		}
 		stack.set(DataComponents.BLOCK_STATE, properties);
-	}
-
-	/** 读取实体 NBT。 */
-	private static CompoundTag entityNbt(ServerLevel level, Entity entity) {
-		try (ProblemReporter.ScopedCollector reporter = new ProblemReporter.ScopedCollector(LOGGER)) {
-			TagValueOutput output = TagValueOutput.createWithContext(reporter, level.registryAccess());
-			entity.saveWithoutId(output);
-			CompoundTag tag = output.buildResult();
-			tag.remove("id");
-			return tag;
-		} catch (Exception e) {
-			return null;
-		}
 	}
 
 	/**
