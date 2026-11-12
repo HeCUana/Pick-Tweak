@@ -133,6 +133,10 @@ public final class ServerPickService {
 		if (override != null) {
 			stack = ItemStackParser.parse(override, level.registryAccess());
 		}
+		if (stack.isEmpty()) {
+			// 火 / 灵魂火 → 打火石
+			stack = BlockItems.firePickItem(state);
+		}
 		if (stack.isEmpty() && config.pickFluids) {
 			// 流体（和粉雪）拾取成装满的桶
 			stack = BlockItems.fluidBucket(state);
@@ -143,7 +147,8 @@ public final class ServerPickService {
 		if (stack.isEmpty()) {
 			return;
 		}
-		if (includeData && config.allowIncludeData) {
+		// 刷怪笼默认带 NBT（SpawnData / SpawnPotentials），否则放下后是空笼子
+		if ((includeData || BlockItems.isSpawner(state)) && config.allowIncludeData) {
 			attachBlockEntityData(level, state, pos, stack);
 		}
 		if (includeState && config.allowStateProperties) {
@@ -208,6 +213,20 @@ public final class ServerPickService {
 
 		// 只接受 sun / moon，非法 kind 静默丢弃
 		if (!"sun".equals(normalized) && !"moon".equals(normalized)) {
+			return;
+		}
+
+		// 手持光源方块时：按光照等级循环发放（太阳 / 月亮都是光源方块）
+		int heldLevel = BlockItems.lightLevel(player.getMainHandItem());
+
+		if (heldLevel < 0) {
+			heldLevel = BlockItems.lightLevel(player.getOffhandItem());
+		}
+
+		if (heldLevel >= 0) {
+			int next = BlockItems.nextLightLevel(heldLevel);
+			give(player, BlockItems.lightBlock(next));
+			player.sendSystemMessage(Component.translatable("picktweak.message.light_level", next));
 			return;
 		}
 

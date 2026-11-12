@@ -100,6 +100,7 @@
   "picktweak.message.no_nbt": "%s 沒有可複製的 NBT。",
   "picktweak.message.state_copied": "已複製 %s 的方塊狀態：%s",
   "picktweak.message.no_block_state": "%s 沒有可複製的方塊狀態。",
+  "picktweak.message.light_level": "光照等級：%s",
   "picktweak.command.reload_success": "已重新載入自訂映射。",
   "picktweak.command.not_in_world": "目前不在世界中。",
   "picktweak.command.unknown_type": "未知的類型：%s",

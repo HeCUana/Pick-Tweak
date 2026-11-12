@@ -30,7 +30,7 @@ public final class Configs {
 	public static final boolean DEFAULT_BLOCK_PICKER_USE_INTERACTION_RANGE = false;
 	public static final boolean DEFAULT_BLOCK_PICKER_PICK_BLOCKS = true;
 	public static final boolean DEFAULT_BLOCK_PICKER_PICK_ENTITIES = true;
-	public static final boolean DEFAULT_BLOCK_PICKER_PICK_FLUIDS = true;
+	public static final boolean DEFAULT_BLOCK_PICKER_PICK_FLUIDS = false;
 	public static final boolean DEFAULT_BLOCK_PICKER_PICK_LIGHT_SOURCES = true;
 	public static final boolean DEFAULT_BLOCK_PICKER_PREFER_ENTITY_HEADS = true;
 	public static final boolean DEFAULT_BLOCK_PICKER_TAKE_OVER_LITEMATICA = true;

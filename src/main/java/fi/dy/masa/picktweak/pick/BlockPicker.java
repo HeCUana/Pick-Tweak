@@ -1,17 +1,16 @@
 package fi.dy.masa.picktweak.pick;
 
+import fi.dy.masa.picktweak.util.BlockItems;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.BlockItemStateProperties;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Property;
 
 import com.mojang.logging.LogUtils;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.level.storage.TagValueOutput;
 import org.slf4j.Logger;
@@ -33,13 +32,9 @@ public final class BlockPicker {
 	private BlockPicker() {
 	}
 
-	/** 把方块状态属性写进物品的 block_state 组件。 */
+	/** 把方块状态属性写进物品的 block_state 组件（委托 {@link BlockItems#applyState}，客户端 / 服务端共用）。 */
 	public static void applyBlockState(ItemStack stack, BlockState state) {
-		BlockItemStateProperties properties = stack.getOrDefault(DataComponents.BLOCK_STATE, BlockItemStateProperties.EMPTY);
-		for (Property<?> property : state.getProperties()) {
-			properties = properties.with(property, state);
-		}
-		stack.set(DataComponents.BLOCK_STATE, properties);
+		BlockItems.applyState(stack, state);
 	}
 
 	/**

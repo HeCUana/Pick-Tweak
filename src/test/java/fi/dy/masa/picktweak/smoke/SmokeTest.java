@@ -43,7 +43,7 @@ public class SmokeTest {
 		Configs.installDefaults();
 		check("default snapshot", Configs.blockPicker.enabled && Configs.blockPicker.creativeRange == 100.0D
 						&& Configs.blockPicker.copyNbt && Configs.blockPicker.showCopiedNbt
-						&& Configs.blockPicker.copyState
+						&& Configs.blockPicker.copyState && !Configs.blockPicker.pickFluids
 						&& Configs.inventory.lockedSlots.length == 9,
 				"creative=" + Configs.blockPicker.creativeRange);
 
@@ -160,6 +160,11 @@ public class SmokeTest {
 			check("override parse custom_data", !withData.isEmpty()
 							&& withData.get(DataComponents.CUSTOM_DATA) != null,
 					withData.isEmpty() ? "empty" : String.valueOf(withData.get(DataComponents.CUSTOM_DATA)));
+			var fullStack = ItemStackParser.parse(
+					"{\"id\":\"minecraft:stone\",\"count\":3}",
+					net.minecraft.core.RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
+			check("override parse full item json", !fullStack.isEmpty() && fullStack.getCount() == 3,
+					fullStack.isEmpty() ? "empty" : String.valueOf(fullStack.getCount()));
 		} catch (Throwable t) {
 			System.out.println("    (skipped ItemStack construction: vanilla data pack is not loaded in a bare JVM)");
 		}
@@ -172,7 +177,7 @@ public class SmokeTest {
 		PbpServerConfig serverConfig = PbpServerConfig.get();
 		check("server config defaults", serverConfig.maxPickDistance == 100.0D
 						&& serverConfig.allowIncludeData && serverConfig.allowStateProperties
-						&& !serverConfig.giveInSurvival && !serverConfig.allowClientGive
+						&& !serverConfig.giveInSurvival && !serverConfig.allowClientGive && !serverConfig.pickFluids
 						&& serverConfig.preferEntityHeads
 						&& serverConfig.toolItems.size() == 9 && serverConfig.weaponItems.size() == 6,
 				"maxDist=" + serverConfig.maxPickDistance
@@ -183,6 +188,9 @@ public class SmokeTest {
 		check("server config: celestial items are valid item ids",
 				BuiltInRegistries.ITEM.containsKey(net.minecraft.resources.Identifier.parse(serverConfig.sunItem))
 						&& BuiltInRegistries.ITEM.containsKey(net.minecraft.resources.Identifier.parse(serverConfig.moonItem)),
+				"sun=" + serverConfig.sunItem + " moon=" + serverConfig.moonItem);
+		check("server config: sun / moon default to the light block",
+				"minecraft:light".equals(serverConfig.sunItem) && "minecraft:light".equals(serverConfig.moonItem),
 				"sun=" + serverConfig.sunItem + " moon=" + serverConfig.moonItem);
 
 		// 7. 拾取数据包类型
@@ -317,6 +325,37 @@ public class SmokeTest {
 		check("block state text: campfire keeps lit",
 				campfireText.contains("lit="), campfireText);
 		check("block state text: plain block is empty", stoneText.isEmpty(), stoneText);
+
+		// 14. 火 / 刷怪笼 / 光源等级（纯逻辑）
+		check("pick: spawner detection",
+				fi.dy.masa.picktweak.util.BlockItems.isSpawner(net.minecraft.world.level.block.Blocks.SPAWNER.defaultBlockState())
+						&& fi.dy.masa.picktweak.util.BlockItems.isSpawner(net.minecraft.world.level.block.Blocks.TRIAL_SPAWNER.defaultBlockState())
+						&& !fi.dy.masa.picktweak.util.BlockItems.isSpawner(net.minecraft.world.level.block.Blocks.STONE.defaultBlockState()),
+				"ok");
+		check("pick: light level cycles 15 -> 0 -> 1",
+				fi.dy.masa.picktweak.util.BlockItems.nextLightLevel(15) == 0
+						&& fi.dy.masa.picktweak.util.BlockItems.nextLightLevel(0) == 1
+						&& fi.dy.masa.picktweak.util.BlockItems.nextLightLevel(7) == 8,
+				String.valueOf(fi.dy.masa.picktweak.util.BlockItems.nextLightLevel(15)));
+		try {
+			check("pick: fire -> flint and steel",
+					fi.dy.masa.picktweak.util.BlockItems.firePickItem(net.minecraft.world.level.block.Blocks.FIRE.defaultBlockState())
+							.getItem() == net.minecraft.world.item.Items.FLINT_AND_STEEL
+							&& fi.dy.masa.picktweak.util.BlockItems.firePickItem(net.minecraft.world.level.block.Blocks.SOUL_FIRE.defaultBlockState())
+							.getItem() == net.minecraft.world.item.Items.FLINT_AND_STEEL,
+					"ok");
+			check("pick: plain block has no fire item",
+					fi.dy.masa.picktweak.util.BlockItems.firePickItem(net.minecraft.world.level.block.Blocks.STONE.defaultBlockState()).isEmpty(),
+					"ok");
+			check("pick: light block level round-trip",
+					fi.dy.masa.picktweak.util.BlockItems.lightLevel(fi.dy.masa.picktweak.util.BlockItems.lightBlock(9)) == 9,
+					String.valueOf(fi.dy.masa.picktweak.util.BlockItems.lightLevel(fi.dy.masa.picktweak.util.BlockItems.lightBlock(9))));
+			check("pick: non-light item has no light level",
+					fi.dy.masa.picktweak.util.BlockItems.lightLevel(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.STONE)) < 0,
+					"ok");
+		} catch (Throwable t) {
+			System.out.println("    (skipped ItemStack-based pick checks: vanilla data pack is not loaded in a bare JVM)");
+		}
 
 		System.out.println();
 		System.out.println(failures == 0 ? "ALL SMOKE TESTS PASSED" : (failures + " SMOKE TEST(S) FAILED"));

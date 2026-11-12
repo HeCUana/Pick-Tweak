@@ -1,9 +1,10 @@
 # Pick Tweak
 
-当前版本：**1.0.0-beta.6**（Minecraft 26.3 / Fabric）。
+当前版本：**1.0.0-beta.7**（Minecraft 26.3 / Fabric）。
 
 masa 风格的拾取增强：远距离拾取方块与实体、Ctrl 把目标数据写进物品（实体数据 / 方块实体 NBT）并复制 NBT、
 Alt 把方块状态写进物品（`block_state` 组件）并复制状态文本、ID 一键复制、智能选工具与武器。
+另支持火方块 → 打火石、刷怪笼带 NBT、落下方块 → 方块物品，以及指向太阳 / 月亮时循环光源等级。
 拾取由服务端权威处理，客户端可选安装 MaLiLib 获得配置面板与改键。
 
 ## 依赖
@@ -16,7 +17,7 @@ Alt 把方块状态写进物品（`block_state` 组件）并复制状态文本�
 
 ## 安装
 
-服务端与客户端都放入 `picktweak-1.0.0-beta.6.jar`；客户端可选装 MaLiLib 与 Mod Menu。
+服务端与客户端都放入 `picktweak-1.0.0-beta.7.jar`；客户端可选装 MaLiLib 与 Mod Menu。
 
 服务端组件负责权威拾取（校验距离、计算 NBT 与状态属性、发放物品），客户端负责输入、界面与本地回退。
 只装客户端、服务端没装模组时，拾取会退回客户端本地计算（创造模式可本地生成物品；生存模式只在背包里已有同类物品时切换）。
@@ -36,6 +37,15 @@ Alt 把方块状态写进物品（`block_state` 组件）并复制状态文本�
 | G | 拾取最合适的工具 / 武器 |
 | K | 打开配置面板（需要 MaLiLib） |
 | Ctrl + 数字键（聊天框内） | 把该快捷栏物品的 ID 写进输入框（1…0 十个槽位都能单独改键） |
+
+**一些拾取细节：**
+
+- 火（普通火 / 灵魂火）→ 打火石；下落中的方块 → 落地后的方块物品（Ctrl 时附带方块状态）。
+- 刷怪笼（普通 / 试炼）→ 刷怪笼物品，并附带上刷怪笼的方块实体 NBT（生物类型等，受服务端 `allowIncludeData` 约束）。
+- 指向太阳 / 月亮（需要服务端安装本模组）：默认发放光源方块（`sunItem` / `moonItem` 默认都是 `minecraft:light`）；
+  若主手或副手正拿着光源方块，每次拾取循环光照等级 0–15（15 → 0），并在聊天栏提示当前等级。
+- 流体拾取成桶默认**关闭**（客户端 `blockPickerPickFluids` / 服务端 `pickFluids` 默认均为 `false`），需要时在配置里打开。
+- 玩家 → 带皮肤数据的玩家头颅；`picktweak-overrides.json` 支持 ID、`ID[组件=JSON]` 与完整物品 JSON / SNBT，可完全自定义 NBT（两端与客户端回退都生效）。
 
 ## 与 Axiom 共存
 
@@ -66,9 +76,9 @@ Pick Tweak 不会和它抢同一个注入点，而是在「Axiom 明确要接管
 
 | 文件 | 位置 | 内容 |
 |---|---|---|
-| `picktweak.json` | 客户端 | 全部客户端设置，在 MaLiLib 面板（K 键）里编辑；没装 MaLiLib 时使用默认值 |
-| `picktweak-server.json` | 服务端 | 最大拾取距离、NBT / 状态开关、是否允许客户端发物品、生存模式是否发放、限流、附魔等级上限、太阳与月亮对应的物品、工具 / 武器物品表 |
-| `picktweak-overrides.json` | 两端（各自读取） | 自定义映射：`方块 / 实体 -> 物品`，缺失时自动写入模板 |
+| `picktweak.json` | 客户端 | 全部客户端设置（含流体 / 光源开关），在 MaLiLib 面板（K 键）里编辑；没装 MaLiLib 时使用默认值 |
+| `picktweak-server.json` | 服务端 | 最大拾取距离、NBT / 状态开关、是否允许客户端发物品、生存模式是否发放、限流、附魔等级上限、流体拾取（默认关）、太阳 / 月亮物品（默认光源方块）、工具 / 武器物品表 |
+| `picktweak-overrides.json` | 两端（各自读取） | 自定义映射：`方块 / 实体 -> 物品`；值支持 ID、`ID[组件=JSON]`、完整物品 JSON / SNBT（含 NBT），缺失时自动写入模板 |
 
 旧版本的 `pickblockpro-server.json` / `pickblockpro-overrides.json` 会在首次启动时自动迁移读取，并写出新的文件名。
 
@@ -88,7 +98,7 @@ Pick Tweak 不会和它抢同一个注入点，而是在「Axiom 明确要接管
 ## 构建
 
 ```bash
-./gradlew build     # 产物：build/libs/picktweak-1.0.0-beta.6.jar
+./gradlew build     # 产物：build/libs/picktweak-1.0.0-beta.7.jar
 ./gradlew smoke     # 冒烟测试（不启动游戏）
 ```
 

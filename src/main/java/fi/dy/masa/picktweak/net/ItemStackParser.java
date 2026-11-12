@@ -5,6 +5,9 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponentPatch;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.TagParser;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
@@ -32,6 +35,13 @@ public final class ItemStackParser {
 			return ItemStack.EMPTY;
 		}
 		String trimmed = text.trim();
+
+		// 完整物品 SNBT / JSON（例如 {"id":"minecraft:spawner","count":1,"components":{...}}）。
+		// 这是 overrides 里「完全支持 NBT 数据」的写法。
+		if (trimmed.startsWith("{")) {
+			return parseFullStack(trimmed, registries);
+		}
+
 		String idPart = trimmed;
 		String componentPart = null;
 
@@ -54,6 +64,35 @@ public final class ItemStackParser {
 			applyComponents(stack, componentPart, registries);
 		}
 		return stack;
+	}
+
+	/** 解析完整的物品 SNBT / JSON 对象（含 count / components）。 */
+	private static ItemStack parseFullStack(String text, RegistryAccess registries) {
+		if (registries == null) {
+			return ItemStack.EMPTY;
+		}
+		// 先按 JSON 解析（overrides.json 里最自然的写法），再按 SNBT 解析。
+		try {
+			var ops = RegistryOps.create(com.mojang.serialization.JsonOps.INSTANCE, registries);
+			var element = JsonParser.parseString(text);
+			var result = ItemStack.CODEC.parse(ops, element).result();
+			if (result.isPresent()) {
+				return result.get();
+			}
+		} catch (Exception ignored) {
+			// 落到 SNBT
+		}
+		try {
+			CompoundTag tag = TagParser.parseCompoundFully(text);
+			var ops = RegistryOps.create(NbtOps.INSTANCE, registries);
+			var result = ItemStack.CODEC.parse(ops, tag).result();
+			if (result.isPresent()) {
+				return result.get();
+			}
+		} catch (Exception ignored) {
+			// 无法解析：返回空
+		}
+		return ItemStack.EMPTY;
 	}
 
 	private static void applyComponents(ItemStack stack, String componentPart, RegistryAccess registries) {

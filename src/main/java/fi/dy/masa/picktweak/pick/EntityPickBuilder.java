@@ -2,7 +2,11 @@ package fi.dy.masa.picktweak.pick;
 
 import com.mojang.logging.LogUtils;
 import fi.dy.masa.picktweak.Reference;
+import fi.dy.masa.picktweak.net.ItemStackParser;
+import fi.dy.masa.picktweak.net.PbpOverrides;
+import fi.dy.masa.picktweak.util.BlockItems;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.util.ProblemReporter;
@@ -13,6 +17,7 @@ import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.entity.decoration.GlowItemFrame;
 import net.minecraft.world.entity.decoration.ItemFrame;
 import net.minecraft.world.entity.decoration.painting.Painting;
+import net.minecraft.world.entity.item.FallingBlockEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -21,6 +26,7 @@ import net.minecraft.world.item.SpawnEggItem;
 import net.minecraft.world.item.component.ResolvableProfile;
 import net.minecraft.world.item.component.TypedEntityData;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.TagValueOutput;
 import org.slf4j.Logger;
 
@@ -81,6 +87,31 @@ public final class EntityPickBuilder {
 	public static ItemStack build(Level level, Entity entity, boolean includeData, boolean preferEntityHeads) {
 		if (entity == null) {
 			return ItemStack.EMPTY;
+		}
+
+		// 下落中的方块：给「落地后会变成的方块物品」；Ctrl 时把方块状态一并带上。
+		if (entity instanceof FallingBlockEntity falling) {
+			BlockState state = falling.getBlockState();
+
+			if (!state.isAir()) {
+				// 方块 overrides 对下落方块同样生效
+				String override = PbpOverrides.getBlockOverride(blockId(state));
+				if (override != null) {
+					ItemStack parsed = ItemStackParser.parse(override, level.registryAccess());
+					if (!parsed.isEmpty()) {
+						return parsed;
+					}
+				}
+
+				ItemStack stack = new ItemStack(state.getBlock().asItem());
+
+				if (!stack.isEmpty()) {
+					if (includeData) {
+						BlockItems.applyState(stack, state);
+					}
+					return stack;
+				}
+			}
 		}
 
 		if (includeData) {
@@ -226,6 +257,12 @@ public final class EntityPickBuilder {
 			result.remove(key);
 		}
 		return result;
+	}
+
+	/** 方块注册 ID 文本（overrides 用）。 */
+	private static String blockId(BlockState state) {
+		net.minecraft.resources.Identifier id = BuiltInRegistries.BLOCK.getKey(state.getBlock());
+		return id == null ? "minecraft:air" : id.toString();
 	}
 
 	/** 物品展示框只保留展示相关的字段。 */

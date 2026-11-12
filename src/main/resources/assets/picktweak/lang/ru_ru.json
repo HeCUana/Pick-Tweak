@@ -100,6 +100,7 @@
   "picktweak.message.no_nbt": "У %s нет NBT для копирования.",
   "picktweak.message.state_copied": "Скопировано состояние блока %s: %s",
   "picktweak.message.no_block_state": "У %s нет состояния блока для копирования.",
+  "picktweak.message.light_level": "Уровень света: %s",
   "picktweak.command.reload_success": "Пользовательские сопоставления перезагружены.",
   "picktweak.command.not_in_world": "Вы не в мире.",
   "picktweak.command.unknown_type": "Неизвестный тип: %s",

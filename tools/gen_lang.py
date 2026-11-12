@@ -201,6 +201,8 @@ add("picktweak.message.state_copied", "已复制 %s 的方块状态：%s", "已�
 add("picktweak.message.no_block_state", "%s 没有可复制的方块状态。", "%s 沒有可複製的方塊狀態。",
     "%s has no block state to copy.", "%s n'a aucun état de bloc à copier.",
     "У %s нет состояния блока для копирования.")
+add("picktweak.message.light_level", "光照等级：%s", "光照等級：%s", "Light level: %s",
+    "Niveau de lumière : %s", "Уровень света: %s")
 
 # ---------------- 命令 ----------------
 add("picktweak.command.reload_success", "已重新载入自定义映射。", "已重新載入自訂映射。", "Custom mappings reloaded.",

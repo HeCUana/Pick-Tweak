@@ -100,6 +100,7 @@
   "picktweak.message.no_nbt": "%s has no NBT to copy.",
   "picktweak.message.state_copied": "Copied the block state of %s: %s",
   "picktweak.message.no_block_state": "%s has no block state to copy.",
+  "picktweak.message.light_level": "Light level: %s",
   "picktweak.command.reload_success": "Custom mappings reloaded.",
   "picktweak.command.not_in_world": "You are not in a world.",
   "picktweak.command.unknown_type": "Unknown type: %s",

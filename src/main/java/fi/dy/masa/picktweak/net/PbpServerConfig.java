@@ -46,8 +46,8 @@ public final class PbpServerConfig {
 
 	/** 拾取太阳的默认物品。 */
 	public static final String DEFAULT_SUN_ITEM = "minecraft:light";
-	/** 拾取月亮的默认物品（26.3 没有 moonstone，用萤石代替）。 */
-	public static final String DEFAULT_MOON_ITEM = "minecraft:glowstone";
+	/** 拾取月亮的默认物品（太阳 / 月亮都发放光源方块；26.3 没有 moonstone）。 */
+	public static final String DEFAULT_MOON_ITEM = "minecraft:light";
 
 	/** 最大拾取距离（方块），加载时夹取到 {@value #MIN_DISTANCE}..{@value #MAX_DISTANCE}。 */
 	public double maxPickDistance = 100.0D;
@@ -75,8 +75,8 @@ public final class PbpServerConfig {
 	public int rateLimitPerSecond = 20;
 	/** 拾取生物时优先给出头颅（僵尸 -> 僵尸头）而不是刷怪蛋。 */
 	public boolean preferEntityHeads = true;
-	/** 拾取流体（和粉雪）时发放装满的桶。 */
-	public boolean pickFluids = true;
+	/** 拾取流体（和粉雪）时发放装满的桶（默认关闭）。 */
+	public boolean pickFluids = false;
 	/** 拾取太阳时发放的物品。 */
 	public String sunItem = DEFAULT_SUN_ITEM;
 	/** 拾取月亮时发放的物品。 */
