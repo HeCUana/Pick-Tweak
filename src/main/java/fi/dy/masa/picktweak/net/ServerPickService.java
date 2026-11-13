@@ -154,6 +154,11 @@ public final class ServerPickService {
 		}
 		if (includeState && config.allowStateProperties) {
 			attachBlockState(stack, state);
+
+			if (!state.getProperties().isEmpty()) {
+				// 带方块状态的物品加一行紫色 +状态 副标题
+				ItemNbtMarker.markState(stack);
+			}
 		}
 		give(player, stack);
 	}

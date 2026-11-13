@@ -346,6 +346,13 @@ public class SmokeTest {
 						.filter(line -> "+NBT".equals(line.getString())).count();
 			}
 			check("nbt marker: no duplicate line", markerLines == 1, String.valueOf(markerLines));
+			fi.dy.masa.picktweak.util.ItemNbtMarker.markState(markerStack);
+			check("state marker: +state lore line", fi.dy.masa.picktweak.util.ItemNbtMarker.hasStateMarker(markerStack), "ok");
+			fi.dy.masa.picktweak.util.ItemNbtMarker.markState(markerStack);
+			var stateLore = markerStack.get(net.minecraft.core.component.DataComponents.LORE);
+			int stateLines = stateLore == null ? 0 : (int) stateLore.lines().stream()
+					.filter(line -> "+State".equals(line.getString())).count();
+			check("state marker: no duplicate line", stateLines == 1, String.valueOf(stateLines));
 		} catch (Throwable t) {
 			System.out.println("    (skipped ItemStack-based nbt marker checks: vanilla data pack is not loaded in a bare JVM)");
 		}

@@ -74,6 +74,10 @@ public final class ClientPickBuilder {
 
 		if (includeState) {
 			BlockPicker.applyBlockState(stack, state);
+
+			if (!state.getProperties().isEmpty()) {
+				ItemNbtMarker.markState(stack);
+			}
 		}
 
 		return stack;
