@@ -96,7 +96,7 @@
   "picktweak.message.picked": "PBP : %s récupéré",
   "picktweak.message.generated": "%s généré",
   "picktweak.message.generate_failed": "Échec de la génération, vérifiez la configuration.",
-  "picktweak.message.server_mod_missing": "Le serveur ne contient pas le composant serveur de Pick Tweak ; retour à la sélection côté client.",
+  "picktweak.message.server_mod_missing": "Pick Tweak n'est pas installé sur le serveur : la sélection étendue est indisponible et la sélection vanilla est utilisée (la copie NBT/état par Ctrl/Alt reste disponible).",
   "picktweak.message.give_denied": "Le serveur a refusé la demande d'outil.",
   "picktweak.message.reload_denied": "Le serveur a refusé le rechargement : permission OP requise.",
   "picktweak.message.nbt_copied": "NBT de %s copié dans le presse-papiers.",
@@ -104,10 +104,10 @@
   "picktweak.message.state_copied": "État du bloc de %s copié : %s",
   "picktweak.message.no_block_state": "%s n'a aucun état de bloc à copier.",
   "picktweak.message.light_level": "Niveau de lumière : %s",
+  "picktweak.command.server_only": "Cette fonctionnalité nécessite Pick Tweak sur le serveur.",
   "picktweak.command.reload_success": "Mappings personnalisés rechargés.",
   "picktweak.command.not_in_world": "Vous n'êtes pas dans un monde.",
   "picktweak.command.unknown_type": "Type inconnu : %s",
-  "picktweak.command.need_creative": "Cette commande ne fonctionne qu'en mode créatif.",
   "picktweak.command.generate_failed": "Échec de la génération de %s, vérifiez la configuration.",
   "picktweak.command.given": "Vous avez reçu %s"
 }

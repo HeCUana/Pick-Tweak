@@ -89,18 +89,6 @@ public final class BlockPicker {
 		return false;
 	}
 
-	/** 把方块实体的数据写进物品。 */
-	public static void applyBlockEntityData(ClientLevel level, BlockEntity blockEntity, ItemStack stack) {
-		try (ProblemReporter.ScopedCollector collector = new ProblemReporter.ScopedCollector(LOGGER)) {
-			TagValueOutput output = TagValueOutput.createWithContext(collector, level.registryAccess());
-			blockEntity.saveCustomOnly(output);
-			blockEntity.removeComponentsFromTag(output);
-			net.minecraft.world.item.BlockItem.setBlockEntityData(stack, blockEntity.getType(), output);
-			stack.applyComponents(blockEntity.collectComponents());
-		} catch (Exception e) {
-			LOGGER.debug("[Pick Block Pro] 读取方块实体数据失败", e);
-		}
-	}
 
 	/**
 	 * 读取实体 NBT（不含 id）。

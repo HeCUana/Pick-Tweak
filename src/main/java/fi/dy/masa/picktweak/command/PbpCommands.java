@@ -1,7 +1,6 @@
 package fi.dy.masa.picktweak.command;
 
 import fi.dy.masa.picktweak.config.Configs;
-import fi.dy.masa.picktweak.inv.InventoryManager;
 import fi.dy.masa.picktweak.net.PbpPayloads;
 import fi.dy.masa.picktweak.tool.ToolPicker;
 import com.mojang.brigadier.CommandDispatcher;
@@ -11,11 +10,9 @@ import net.fabricmc.fabric.api.client.command.v2.ClientCommands;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.item.ItemStack;
 
 import java.util.List;
 import java.util.Locale;
@@ -39,13 +36,12 @@ public final class PbpCommands {
 	public static void register(CommandDispatcher<FabricClientCommandSource> dispatcher, CommandBuildContext context) {
 		dispatcher.register(literal("pbp")
 				.then(literal("reload").executes(ctx -> {
-					// 服务端装了本模组时由服务端重载（成功消息由服务端发）；否则本地重载。
-					if (ClientPlayNetworking.canSend(PbpPayloads.Reload.TYPE)) {
-						ClientPlayNetworking.send(new PbpPayloads.Reload());
-					} else {
-						fi.dy.masa.picktweak.net.PbpOverrides.reload();
-						ctx.getSource().sendFeedback(Component.translatable("picktweak.command.reload_success"));
+					// 重载需要服务端配合（客户端不能替代）。
+					if (!ClientPlayNetworking.canSend(PbpPayloads.Reload.TYPE)) {
+						ctx.getSource().sendFeedback(Component.translatable("picktweak.command.server_only"));
+						return 0;
 					}
+					ClientPlayNetworking.send(new PbpPayloads.Reload());
 					return 1;
 				}))
 				.then(literal("give")
@@ -73,9 +69,8 @@ public final class PbpCommands {
 
 	private static int give(FabricClientCommandSource source, String type, boolean weapon) {
 		Minecraft mc = Minecraft.getInstance();
-		ClientLevel level = mc.level;
 		LocalPlayer player = mc.player;
-		if (level == null || player == null) {
+		if (mc.level == null || player == null) {
 			source.sendFeedback(Component.translatable("picktweak.command.not_in_world"));
 			return 0;
 		}
@@ -86,24 +81,18 @@ public final class PbpCommands {
 			return 0;
 		}
 
-		// 优先让服务端发放（服务端权威）。
+		// 物品发放由服务端权威处理；服务端没装本模组时不再本地伪造物品。
+		if (!ClientPlayNetworking.canSend(PbpPayloads.GiveTool.TYPE)) {
+			source.sendFeedback(Component.translatable("picktweak.command.server_only"));
+			return 0;
+		}
+
 		if (ToolPicker.requestGive(mc, Configs.toolPicker, normalized, weapon)) {
 			source.sendFeedback(Component.translatable("picktweak.command.given", normalized));
 			return 1;
 		}
 
-		// 服务端没装 PBP：本地生成，仅创造模式可用。
-		if (!player.hasInfiniteMaterials()) {
-			source.sendFeedback(Component.translatable("picktweak.command.need_creative"));
-			return 0;
-		}
-		ItemStack stack = ToolPicker.generateTool(level, Configs.toolPicker, normalized, weapon);
-		if (stack.isEmpty()) {
-			source.sendFeedback(Component.translatable("picktweak.command.generate_failed", type));
-			return 0;
-		}
-		InventoryManager.giveCreative(stack);
-		source.sendFeedback(Component.translatable("picktweak.command.given", stack.getHoverName()));
-		return 1;
+		source.sendFeedback(Component.translatable("picktweak.command.server_only"));
+		return 0;
 	}
 }

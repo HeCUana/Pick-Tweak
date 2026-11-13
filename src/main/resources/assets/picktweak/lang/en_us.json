@@ -96,7 +96,7 @@
   "picktweak.message.picked": "PBP: picked %s",
   "picktweak.message.generated": "Generated %s",
   "picktweak.message.generate_failed": "Generation failed, check your config.",
-  "picktweak.message.server_mod_missing": "The server has no Pick Tweak server component; falling back to the client-side pick.",
+  "picktweak.message.server_mod_missing": "Pick Tweak is not installed on the server: extended picking is unavailable and vanilla picking is used (Ctrl/Alt clipboard copy still works).",
   "picktweak.message.give_denied": "The server denied the tool request.",
   "picktweak.message.reload_denied": "The server rejected the reload: OP permission is required.",
   "picktweak.message.nbt_copied": "Copied the NBT of %s to the clipboard.",
@@ -104,10 +104,10 @@
   "picktweak.message.state_copied": "Copied the block state of %s: %s",
   "picktweak.message.no_block_state": "%s has no block state to copy.",
   "picktweak.message.light_level": "Light level: %s",
+  "picktweak.command.server_only": "This feature requires Pick Tweak on the server.",
   "picktweak.command.reload_success": "Custom mappings reloaded.",
   "picktweak.command.not_in_world": "You are not in a world.",
   "picktweak.command.unknown_type": "Unknown type: %s",
-  "picktweak.command.need_creative": "This command only works in creative mode.",
   "picktweak.command.generate_failed": "Failed to generate %s, check your config.",
   "picktweak.command.given": "Gave you %s"
 }

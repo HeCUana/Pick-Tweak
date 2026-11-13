@@ -2,7 +2,6 @@ package fi.dy.masa.picktweak.pick;
 
 import fi.dy.masa.picktweak.config.Configs;
 import fi.dy.masa.picktweak.config.HotkeyBinds;
-import fi.dy.masa.picktweak.inv.InventoryManager;
 import fi.dy.masa.picktweak.net.PbpPayloads;
 import fi.dy.masa.picktweak.util.NbtFormatter;
 import fi.dy.masa.picktweak.util.PbpText;
@@ -13,7 +12,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.level.block.state.BlockState;
@@ -58,11 +56,15 @@ public final class ClientPicker {
 		boolean ctrl = HotkeyBinds.isModifierActive(HotkeyBinds.Modifier.NBT);
 		boolean alt = HotkeyBinds.isModifierActive(HotkeyBinds.Modifier.STATE);
 
-		// 服务端装了 PBP 就走权威流程（能真正发放物品）；没装则客户端本地算一份。
 		boolean serverSupport = ClientPlayNetworking.canSend(PbpPayloads.PickBlock.TYPE);
 
-		if (!serverSupport && (ctrl || alt)) {
+		if (!serverSupport) {
+			// 服务端没有本模组：扩展拾取需要服务端权威计算，
+			// 这里不再在客户端本地伪造物品，而是完全交回原版拾取。
+			// 仅保留纯客户端的 Ctrl/Alt 剪贴板复制（不产生任何物品）。
 			hintMissingServer();
+			copyClipboardIfRequested(mc, config, ctrl, alt);
+			return false;
 		}
 
 		double blockRange = effectiveRange(config.range, config.useInteractionRange, config.creativeRange, player);
@@ -85,7 +87,7 @@ public final class ClientPicker {
 				return false;
 			}
 
-			return pickBlock(mc, blockResult, config, ctrl, alt, serverSupport);
+			return pickBlock(mc, blockResult, config, ctrl, alt);
 		}
 
 		if (hit.getType() == HitResult.Type.ENTITY) {
@@ -99,11 +101,11 @@ public final class ClientPicker {
 				return false;
 			}
 
-			return pickEntity(mc, entityResult.getEntity(), config, ctrl, serverSupport);
+			return pickEntity(mc, entityResult.getEntity(), config, ctrl);
 		}
 
 		// 什么都没瞄到：看看是不是指着太阳 / 月亮（这个只有服务端能做）。
-		if (config.pickLightSources && serverSupport) {
+		if (config.pickLightSources) {
 			String celestial = ClientRaycast.pickCelestial(mc);
 
 			if (celestial != null) {
@@ -118,7 +120,7 @@ public final class ClientPicker {
 
 	/** 拾取方块。 */
 	private static boolean pickBlock(Minecraft mc, BlockHitResult blockResult, Configs.BlockPicker config,
-			boolean ctrl, boolean alt, boolean serverSupport) {
+			boolean ctrl, boolean alt) {
 		BlockPos pos = blockResult.getBlockPos();
 
 		try {
@@ -132,15 +134,7 @@ public final class ClientPicker {
 				copyBlockState(mc, pos, config);
 			}
 
-			if (serverSupport) {
-				ClientPlayNetworking.send(new PbpPayloads.PickBlock(pos, ctrl, alt));
-			} else {
-				ItemStack stack = ClientPickBuilder.buildBlockItem(mc.level, pos, ctrl, alt, config.pickFluids);
-
-				if (!stack.isEmpty()) {
-					InventoryManager.give(stack);
-				}
-			}
+			ClientPlayNetworking.send(new PbpPayloads.PickBlock(pos, ctrl, alt));
 		} catch (Throwable t) {
 			fi.dy.masa.picktweak.Reference.LOGGER.error("[Pick Tweak] 拾取方块出错", t);
 			return false;
@@ -152,22 +146,14 @@ public final class ClientPicker {
 
 	/** 拾取实体。 */
 	private static boolean pickEntity(Minecraft mc, Entity entity, Configs.BlockPicker config,
-			boolean ctrl, boolean serverSupport) {
+			boolean ctrl) {
 		try {
 			if (ctrl) {
 				// Ctrl：把实体的完整 NBT 复制到剪贴板（盔甲架的装备、药水、属性等）。
 				copyEntityNbt(mc, entity);
 			}
 
-			if (serverSupport) {
-				ClientPlayNetworking.send(new PbpPayloads.PickEntity(entity.getId(), ctrl));
-			} else {
-				ItemStack stack = ClientPickBuilder.buildEntityItem(mc.level, entity, ctrl);
-
-				if (!stack.isEmpty()) {
-					InventoryManager.give(stack);
-				}
-			}
+			ClientPlayNetworking.send(new PbpPayloads.PickEntity(entity.getId(), ctrl));
 		} catch (Throwable t) {
 			fi.dy.masa.picktweak.Reference.LOGGER.error("[Pick Tweak] 拾取实体出错", t);
 			return false;
@@ -191,6 +177,50 @@ public final class ClientPicker {
 	/** 命中点是否在范围内。 */
 	private static boolean withinRange(Minecraft mc, HitResult hit, double range) {
 		return ClientRaycast.withinRange(mc, hit, range);
+	}
+
+	/**
+	 * 服务端没有本模组时的降级路径：中键拾取完全交回原版，
+	 * 但 Ctrl / Alt 仍提供纯客户端的剪贴板复制（不产生任何物品）。
+	 */
+	private static void copyClipboardIfRequested(Minecraft mc, Configs.BlockPicker config, boolean ctrl, boolean alt) {
+		if (!ctrl && !alt) {
+			return;
+		}
+
+		LocalPlayer player = mc.player;
+
+		if (player == null) {
+			return;
+		}
+
+		double blockRange = effectiveRange(config.range, config.useInteractionRange, config.creativeRange, player);
+		double entityRange = effectiveRange(config.entityRange, config.useInteractionRange, config.creativeRange, player);
+		HitResult hit = resolveHit(mc, Math.max(blockRange, entityRange));
+
+		if (hit == null) {
+			return;
+		}
+
+		if (hit.getType() == HitResult.Type.BLOCK && config.pickBlocks) {
+			if (!withinRange(mc, hit, blockRange)) {
+				return;
+			}
+			BlockPos pos = ((BlockHitResult) hit).getBlockPos();
+			if (ctrl) {
+				copyBlockNbt(mc, pos);
+			}
+			if (alt) {
+				copyBlockState(mc, pos, config);
+			}
+		} else if (hit.getType() == HitResult.Type.ENTITY && config.pickEntities) {
+			if (!withinRange(mc, hit, entityRange)) {
+				return;
+			}
+			if (ctrl) {
+				copyEntityNbt(mc, ((EntityHitResult) hit).getEntity());
+			}
+		}
 	}
 
 	/**

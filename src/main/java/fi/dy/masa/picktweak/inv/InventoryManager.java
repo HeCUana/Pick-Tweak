@@ -61,31 +61,6 @@ public final class InventoryManager {
 		return -1;
 	}
 
-	/**
-	 * 把物品交给玩家（仅创造模式 / 客户端回退路径使用）。
-	 *
-	 * <p>正常情况下拾取由服务端处理，这里只服务于「服务端没装 PBP」的回退路径。</p>
-	 */
-	public static boolean give(ItemStack stack) {
-		if (stack == null || stack.isEmpty()) {
-			return false;
-		}
-		Minecraft mc = Minecraft.getInstance();
-		LocalPlayer player = mc.player;
-		if (player == null) {
-			return false;
-		}
-		Inventory inventory = player.getInventory();
-
-		int exact = inventory.findSlotMatchingItem(stack);
-		if (exact >= 0) {
-			return selectOrSwap(exact);
-		}
-		if (player.hasInfiniteMaterials()) {
-			return giveCreative(stack);
-		}
-		return false;
-	}
 
 	/** 创造模式下把物品放入快捷栏。 */
 	public static boolean giveCreative(ItemStack stack) {

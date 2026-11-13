@@ -96,7 +96,7 @@
   "picktweak.message.picked": "PBP: получено %s",
   "picktweak.message.generated": "Создано: %s",
   "picktweak.message.generate_failed": "Не удалось создать, проверьте настройки.",
-  "picktweak.message.server_mod_missing": "На сервере нет серверной части Pick Tweak — возврат к выбору на клиенте.",
+  "picktweak.message.server_mod_missing": "Pick Tweak не установлен на сервере: расширенный выбор недоступен, используется ванильный выбор (копирование NBT/состояния по Ctrl/Alt работает).",
   "picktweak.message.give_denied": "Сервер отклонил запрос на выдачу инструмента.",
   "picktweak.message.reload_denied": "Сервер отклонил перезагрузку: требуются права OP.",
   "picktweak.message.nbt_copied": "NBT сущности %s скопирован в буфер обмена.",
@@ -104,10 +104,10 @@
   "picktweak.message.state_copied": "Скопировано состояние блока %s: %s",
   "picktweak.message.no_block_state": "У %s нет состояния блока для копирования.",
   "picktweak.message.light_level": "Уровень света: %s",
+  "picktweak.command.server_only": "Для этой функции нужен Pick Tweak на сервере.",
   "picktweak.command.reload_success": "Пользовательские сопоставления перезагружены.",
   "picktweak.command.not_in_world": "Вы не в мире.",
   "picktweak.command.unknown_type": "Неизвестный тип: %s",
-  "picktweak.command.need_creative": "Эта команда работает только в творческом режиме.",
   "picktweak.command.generate_failed": "Не удалось создать %s, проверьте настройки.",
   "picktweak.command.given": "Вы получили %s"
 }

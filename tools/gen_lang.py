@@ -192,11 +192,7 @@ add("picktweak.message.picked", "PBP：已拾取 %s", "PBP：已拾取 %s", "PBP
 add("picktweak.message.generated", "已生成 %s", "已生成 %s", "Generated %s", "%s généré", "Создано: %s")
 add("picktweak.message.generate_failed", "生成失败，请检查配置。", "生成失敗，請檢查設定。", "Generation failed, check your config.",
     "Échec de la génération, vérifiez la configuration.", "Не удалось создать, проверьте настройки.")
-add("picktweak.message.server_mod_missing", "服务端未安装 Pick Tweak，已改用客户端本地拾取。",
-    "伺服器未安裝 Pick Tweak，已改用用戶端本地拾取。",
-    "The server has no Pick Tweak server component; falling back to the client-side pick.",
-    "Le serveur ne contient pas le composant serveur de Pick Tweak ; retour à la sélection côté client.",
-    "На сервере нет серверной части Pick Tweak — возврат к выбору на клиенте.")
+add("picktweak.message.server_mod_missing", "服务端未安装 Pick Tweak：扩展拾取不可用，已改用原版拾取（Ctrl/Alt 复制 NBT/状态仍可用）。", "伺服器未安裝 Pick Tweak：擴展拾取不可用，已改用原版拾取（Ctrl/Alt 複製 NBT/狀態仍可用）。", "Pick Tweak is not installed on the server: extended picking is unavailable and vanilla picking is used (Ctrl/Alt clipboard copy still works).", "Pick Tweak n'est pas installé sur le serveur : la sélection étendue est indisponible et la sélection vanilla est utilisée (la copie NBT/état par Ctrl/Alt reste disponible).", "Pick Tweak не установлен на сервере: расширенный выбор недоступен, используется ванильный выбор (копирование NBT/состояния по Ctrl/Alt работает).")
 add("picktweak.message.give_denied", "服务端禁止了工具发放请求。", "伺服器禁止了工具發放請求。", "The server denied the tool request.",
     "Le serveur a refusé la demande d'outil.", "Сервер отклонил запрос на выдачу инструмента.")
 add("picktweak.message.reload_denied", "服务端拒绝重载：需要 OP 权限。", "伺服器拒絕重載：需要 OP 權限。",
@@ -216,14 +212,17 @@ add("picktweak.message.no_block_state", "%s 没有可复制的方块状态。", 
 add("picktweak.message.light_level", "光照等级：%s", "光照等級：%s", "Light level: %s",
     "Niveau de lumière : %s", "Уровень света: %s")
 
+add("picktweak.command.server_only", "该功能需要服务端安装 Pick Tweak。", "該功能需要伺服器安裝 Pick Tweak。",
+    "This feature requires Pick Tweak on the server.",
+    "Cette fonctionnalité nécessite Pick Tweak sur le serveur.",
+    "Для этой функции нужен Pick Tweak на сервере.")
+
 # ---------------- 命令 ----------------
 add("picktweak.command.reload_success", "已重新载入自定义映射。", "已重新載入自訂映射。", "Custom mappings reloaded.",
     "Mappings personnalisés rechargés.", "Пользовательские сопоставления перезагружены.")
 add("picktweak.command.not_in_world", "当前不在世界中。", "目前不在世界中。", "You are not in a world.", "Vous n'êtes pas dans un monde.",
     "Вы не в мире.")
 add("picktweak.command.unknown_type", "未知的类型：%s", "未知的類型：%s", "Unknown type: %s", "Type inconnu : %s", "Неизвестный тип: %s")
-add("picktweak.command.need_creative", "该命令仅在创造模式可用。", "該命令僅在創造模式可用。", "This command only works in creative mode.",
-    "Cette commande ne fonctionne qu'en mode créatif.", "Эта команда работает только в творческом режиме.")
 add("picktweak.command.generate_failed", "生成 %s 失败，请检查配置。", "生成 %s 失敗，請檢查設定。", "Failed to generate %s, check your config.",
     "Échec de la génération de %s, vérifiez la configuration.", "Не удалось создать %s, проверьте настройки.")
 add("picktweak.command.given", "已给予 %s", "已給予 %s", "Gave you %s", "Vous avez reçu %s", "Вы получили %s")

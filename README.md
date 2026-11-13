@@ -19,8 +19,8 @@ Alt 把方块状态写进物品（`block_state` 组件）并复制状态文本�
 
 服务端与客户端都放入 `picktweak-1.0.3.jar`；客户端可选装 MaLiLib 与 Mod Menu。
 
-服务端组件负责权威拾取（校验距离、计算 NBT 与状态属性、发放物品），客户端负责输入、界面与本地回退。
-只装客户端、服务端没装模组时，拾取会退回客户端本地计算（创造模式可本地生成物品；生存模式只在背包里已有同类物品时切换）。
+服务端组件负责权威拾取（校验距离、计算 NBT 与状态属性、发放物品），客户端负责输入、界面与纯客户端功能（ID / NBT / 状态复制、创造物品栏注入）。
+**只装客户端、服务端没装模组时**：中键拾取完全使用原版行为（客户端不再本地构造物品，不会出现「假物品」）；Ctrl / Alt 仍可把目标 NBT / 状态复制到剪贴板（不产生物品）；太阳 / 月亮、`/pbp give`、`/pbp reload` 需要服务端。
 
 ## 快捷键
 
@@ -48,7 +48,7 @@ Alt 把方块状态写进物品（`block_state` 组件）并复制状态文本�
 - 指向太阳 / 月亮（需要服务端安装本模组）：默认发放光源方块（`sunItem` / `moonItem` 默认都是 `minecraft:light`）；
   若主手或副手正拿着光源方块，每次拾取循环光照等级 0–15（15 → 0），并在聊天栏提示当前等级。
 - 流体拾取成桶默认**关闭**（客户端 `blockPickerPickFluids` / 服务端 `pickFluids` 默认均为 `false`），需要时在配置里打开。
-- 玩家 → 带皮肤数据的玩家头颅；`picktweak-overrides.json` 支持 ID、`ID[组件=JSON]` 与完整物品 JSON / SNBT，可完全自定义 NBT（两端与客户端回退都生效）。
+- 玩家 → 带皮肤数据的玩家头颅；`picktweak-overrides.json` 支持 ID、`ID[组件=JSON]` 与完整物品 JSON / SNBT，可完全自定义 NBT（两端生效）。
 
 ## 与 Axiom 共存
 
@@ -77,15 +77,14 @@ Pick Tweak 不会和它抢同一个注入点，而是在「Axiom 明确要接管
 
 | 命令 | 作用 |
 |---|---|
-| `/pbp reload` | 重新载入自定义映射：服务端装了本模组时由服务端重载（**默认要求 OP**，`requireOpForReload`）；服务端未安装时客户端本地重载 |
+| `/pbp reload` | 重新载入自定义映射：服务端装了本模组时由服务端重载（**默认要求 OP**，`requireOpForReload`）；服务端未安装时该命令提示需要服务端 |
 | `/pbp give tool <类型>` | 请求服务端发放一件带满附魔的工具（**默认要求 OP**，`requireOpForGive`；且 `allowClientGive = true`） |
 | `/pbp give weapon <类型>` | 同上，武器 |
 
 工具类型：`pickaxe`、`axe`、`shovel`、`hoe`、`sword`、`shears`、`bucket`、`fishing_rod`、`brush`；
 武器类型：`sword`、`axe`、`bow`、`crossbow`、`trident`、`mace`。
 
-服务端没装模组时，创造模式会在客户端本地生成对应物品，生存模式只提示（不会凭空发物品）；
-服务端已安装但请求被拒绝（`allowClientGive` 关闭或非 OP）时只提示，不会本地生成。
+`/pbp give` 与 `/pbp reload` 需要服务端安装本模组；服务端未安装时命令提示不可用，不会在本地生成物品。服务端已安装但请求被拒绝（`allowClientGive` 关闭或非 OP）时只提示。
 
 ## 配置
 
