@@ -1,6 +1,6 @@
 # Pick Tweak
 
-当前版本：**1.0.2**（Minecraft 26.3 / Fabric）。
+当前版本：**1.0.3**（Minecraft 26.3 / Fabric）。
 
 masa 风格的拾取增强：远距离拾取方块与实体、Ctrl 把目标数据写进物品（实体数据 / 方块实体 NBT）并复制 NBT、
 Alt 把方块状态写进物品（`block_state` 组件）并复制状态文本、ID 一键复制、智能选工具与武器。
@@ -17,7 +17,7 @@ Alt 把方块状态写进物品（`block_state` 组件）并复制状态文本�
 
 ## 安装
 
-服务端与客户端都放入 `picktweak-1.0.2.jar`；客户端可选装 MaLiLib 与 Mod Menu。
+服务端与客户端都放入 `picktweak-1.0.3.jar`；客户端可选装 MaLiLib 与 Mod Menu。
 
 服务端组件负责权威拾取（校验距离、计算 NBT 与状态属性、发放物品），客户端负责输入、界面与本地回退。
 只装客户端、服务端没装模组时，拾取会退回客户端本地计算（创造模式可本地生成物品；生存模式只在背包里已有同类物品时切换）。
@@ -113,7 +113,7 @@ Pick Tweak 不会和它抢同一个注入点，而是在「Axiom 明确要接管
 ## 构建
 
 ```bash
-./gradlew build     # 产物：build/libs/picktweak-1.0.2.jar
+./gradlew build     # 产物：build/libs/picktweak-1.0.3.jar
 ./gradlew smoke     # 冒烟测试（不启动游戏）
 ```
 
