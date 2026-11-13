@@ -7,6 +7,7 @@ import com.mojang.logging.LogUtils;
 import fi.dy.masa.picktweak.Reference;
 import fi.dy.masa.picktweak.pick.EntityPickBuilder;
 import fi.dy.masa.picktweak.util.BlockItems;
+import fi.dy.masa.picktweak.util.ItemNbtMarker;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
@@ -332,6 +333,8 @@ public final class ServerPickService {
 			blockEntity.removeComponentsFromTag(output);
 			BlockItem.setBlockEntityData(stack, blockEntity.getType(), output);
 			stack.applyComponents(blockEntity.collectComponents());
+			// 带方块实体 NBT 的物品加一行紫色 +NBT 副标题
+			ItemNbtMarker.markNbt(stack);
 		} catch (Exception e) {
 			LOGGER.debug("[{}] 读取方块实体数据失败", Reference.MOD_NAME, e);
 		}

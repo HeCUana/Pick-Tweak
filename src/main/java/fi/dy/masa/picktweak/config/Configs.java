@@ -35,7 +35,7 @@ public final class Configs {
 	public static final boolean DEFAULT_BLOCK_PICKER_PREFER_ENTITY_HEADS = true;
 	public static final boolean DEFAULT_BLOCK_PICKER_TAKE_OVER_LITEMATICA = true;
 	public static final boolean DEFAULT_BLOCK_PICKER_SHOW_FEEDBACK = false;
-	public static final boolean DEFAULT_BLOCK_PICKER_COPY_NBT = true;
+	public static final boolean DEFAULT_BLOCK_PICKER_COPY_NBT = false;
 	public static final boolean DEFAULT_BLOCK_PICKER_SHOW_COPIED_NBT = true;
 	public static final boolean DEFAULT_BLOCK_PICKER_COPY_STATE = true;
 	public static final boolean DEFAULT_BLOCK_PICKER_COPY_NBT_CHAT_FEEDBACK = false;

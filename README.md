@@ -30,11 +30,12 @@ Alt 把方块状态写进物品（`block_state` 组件）并复制状态文本�
 | 按键 | 作用 |
 |---|---|
 | 中键 | 拾取方块 / 实体（可远距离）；生物默认给头颅，其余给刷怪蛋或原版拾取物，展示框 / 画作给本体物品 |
-| Ctrl + 中键 | 把目标数据写进物品并复制 NBT 到剪贴板：方块 → 方块实体 NBT；实体 → 刷怪蛋 / 盔甲架 / 展示框 + `entity_data`、画作 + `painting_variant`（放下即还原状态） |
+| Ctrl + 中键 | 把目标数据写进物品（带 NBT 的物品在名称下方显示紫色 `+NBT` 副标题）：方块 → 方块实体 NBT；实体 → 刷怪蛋 / 盔甲架 / 展示框 + `entity_data`、画作 + `painting_variant`（放下即还原状态）。复制到剪贴板需开启 `blockPickerCopyNbt`（**默认关闭**） |
 | Alt + 中键 | 把方块状态写进物品的 `block_state` 组件（放下可还原朝向 / 点亮等），并把状态文本（如 `facing=north,half=top`）复制到剪贴板（`blockPickerCopyState`，默认开） |
 | Ctrl + Alt + 中键 | 同时附加方块实体 NBT 与方块状态 |
 
-> Ctrl / Alt 复制完成后的聊天提示**默认关闭**，可在面板「区块拾取」页用 `blockPickerCopyNbtChatFeedback` / `blockPickerCopyStateChatFeedback` 打开；`showCopiedNbt` 的美化 NBT 输出同样受 Ctrl 提示开关控制。
+> - Ctrl / Alt 复制完成后的聊天提示**默认关闭**，可在面板「区块拾取」页用 `blockPickerCopyNbtChatFeedback` / `blockPickerCopyStateChatFeedback` 打开；`showCopiedNbt` 的美化 NBT 输出同样受 Ctrl 提示开关控制。
+> - 中键复制时**默认不自动写入剪贴板**：Ctrl 仍会把 NBT 附加到物品并显示紫色 `+NBT` 副标题，需要复制到剪贴板时再开启 `blockPickerCopyNbt`。
 | V | 复制目标 ID 到聊天栏与剪贴板（按住 Ctrl 切换为 NBT 输出） |
 | G | 拾取最合适的工具 / 武器 |
 | K | 打开配置面板（需要 MaLiLib） |

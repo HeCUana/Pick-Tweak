@@ -77,13 +77,14 @@ Pick Tweak（模组 id `picktweak`）扩展了 Minecraft 原版的中键拾取�
 
 | 按键 | 效果 |
 |---|---|
-| **Ctrl + 中键** | 把目标数据写进物品并复制 NBT 到剪贴板：方块 → 方块实体 NBT；生物 → 对应刷怪蛋 + `minecraft:entity_data`（生命值 / 装备 / AI 状态等，放下即生成同样状态的生物）；盔甲架 → 盔甲架物品 + `entity_data`（姿势 / 装备）；展示框 → 展示框物品 + `entity_data`（框内物品 / 旋转 / 隐形 / 固定）；画作 → 画作物品 + `painting_variant`（确切变种）；玩家 → 带皮肤玩家头颅；无刷怪蛋的实体退回其拾取物品并尽量附带 `entity_data` |
+| **Ctrl + 中键** | 把目标数据写进物品（带 NBT 的物品名称下方显示紫色 `+NBT` 副标题），复制 NBT 到剪贴板需开启 `blockPickerCopyNbt`（默认关闭）：方块 → 方块实体 NBT；生物 → 对应刷怪蛋 + `minecraft:entity_data`（生命值 / 装备 / AI 状态等，放下即生成同样状态的生物）；盔甲架 → 盔甲架物品 + `entity_data`（姿势 / 装备）；展示框 → 展示框物品 + `entity_data`（框内物品 / 旋转 / 隐形 / 固定）；画作 → 画作物品 + `painting_variant`（确切变种）；玩家 → 带皮肤玩家头颅；无刷怪蛋的实体退回其拾取物品并尽量附带 `entity_data` |
 | **Alt + 中键** | 把方块状态写进物品的 `minecraft:block_state` 组件（楼梯朝向、营火点燃、台阶类型等，放下可还原），同时把状态文本（如 `facing=north,half=top`）复制到剪贴板 |
 | **Ctrl + Alt + 中键** | 同时附加方块实体 NBT 与方块状态 |
 
 - 刷怪笼即使不按 Ctrl 也会尽量带上方块实体 NBT（受服务端 `allowIncludeData` 约束）；下落的方块仅在 Ctrl 时附带方块状态。
 - `entity_data` 中会剔除坐标 / 速度 / UUID / 朝向等「放置时才决定」的字段，放下实体不会瞬移到旧位置。
 - 剪贴板里是单行 SNBT（已去掉黑名单键），可直接粘进 `/data` 或 `/summon`；开启 `showCopiedNbt` 时聊天栏同时打印缩进版。
+- `blockPickerCopyNbt`（默认关闭）控制 Ctrl 拾取时是否把 NBT 写入剪贴板；关闭时物品仍带 NBT（并显示紫色 `+NBT` 副标题），只是不写剪贴板。
 - `blockPickerCopyState`（默认开）控制 Alt 是否把状态文本复制到剪贴板；关闭后物品仍带 `block_state`，只是不复制文本。
 - 修饰键本身是可改键的 MaLiLib 热键（默认 `LEFT_CONTROL + 中键`、`LEFT_ALT + 中键`），清空绑定即可关闭对应功能。
 
@@ -275,7 +276,7 @@ NBT 输出由配置项 `includeNbt` 与 NBT 修饰键异或决定：默认 `incl
 
 - 需要 **MaLiLib**：装了才有面板（默认 K）与热键改键；没装也能用默认配置与默认 V / G 按键。
 - 面板分组：**区块拾取**、**ID 拾取**、**工具拾取**、**背包**、**创造模式**、**热键**（以及「全部」页）。
-- 「区块拾取」页可配置 `blockPickerCopyState`（Alt 是否复制状态文本，默认开）、`blockPickerCopyNbtChatFeedback` / `blockPickerCopyStateChatFeedback`（复制时的聊天提示，默认关）、`preferEntityHeads`（普通拾取是否优先头颅，默认开）、`blockPickerPickFluids`（流体拾取成桶，默认关）、NBT / 状态黑名单等。
+- 「区块拾取」页可配置 `blockPickerCopyNbt`（Ctrl 是否把 NBT 写入剪贴板，默认关）、`blockPickerCopyState`（Alt 是否复制状态文本，默认开）、`blockPickerCopyNbtChatFeedback` / `blockPickerCopyStateChatFeedback`（复制时的聊天提示，默认关）、`preferEntityHeads`（普通拾取是否优先头颅，默认开）、`blockPickerPickFluids`（流体拾取成桶，默认关）、NBT / 状态黑名单等。
 - 面板内可直接搜索、改键、改值，保存后立即生效。
 
 ### 10.3 服务端配置项（`picktweak-server.json`）

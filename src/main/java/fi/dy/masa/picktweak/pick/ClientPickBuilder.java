@@ -1,6 +1,7 @@
 package fi.dy.masa.picktweak.pick;
 
 import fi.dy.masa.picktweak.config.Configs;
+import fi.dy.masa.picktweak.util.ItemNbtMarker;
 import fi.dy.masa.picktweak.net.ItemStackParser;
 import fi.dy.masa.picktweak.net.PbpOverrides;
 import fi.dy.masa.picktweak.util.BlockItems;
@@ -67,6 +68,7 @@ public final class ClientPickBuilder {
 
 			if (blockEntity != null) {
 				BlockPicker.applyBlockEntityData(level, blockEntity, stack);
+				ItemNbtMarker.markNbt(stack);
 			}
 		}
 

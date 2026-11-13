@@ -51,7 +51,8 @@ public final class MaliOptions {
 	public static final ConfigBoolean BLOCK_PICKER_SHOW_FEEDBACK = bool("blockPickerShowFeedback",
 			Configs.DEFAULT_BLOCK_PICKER_SHOW_FEEDBACK, "Show a chat message about what was picked");
 	public static final ConfigBoolean BLOCK_PICKER_COPY_NBT = bool("blockPickerCopyNbt",
-			Configs.DEFAULT_BLOCK_PICKER_COPY_NBT, "Ctrl + middle click copies the NBT of the target to the clipboard");
+			Configs.DEFAULT_BLOCK_PICKER_COPY_NBT,
+			"Ctrl + middle click copies the NBT of the target to the clipboard (default off; the picked item still carries the NBT)");
 	public static final ConfigBoolean BLOCK_PICKER_SHOW_COPIED_NBT = bool("blockPickerShowCopiedNbt",
 			Configs.DEFAULT_BLOCK_PICKER_SHOW_COPIED_NBT, "Print the copied NBT in the chat box as well");
 	public static final ConfigBoolean BLOCK_PICKER_COPY_STATE = bool("blockPickerCopyState",

@@ -4,6 +4,7 @@ import com.mojang.logging.LogUtils;
 import fi.dy.masa.picktweak.Reference;
 import fi.dy.masa.picktweak.net.ItemStackParser;
 import fi.dy.masa.picktweak.net.PbpOverrides;
+import fi.dy.masa.picktweak.util.ItemNbtMarker;
 import fi.dy.masa.picktweak.util.BlockItems;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -117,6 +118,8 @@ public final class EntityPickBuilder {
 		if (includeData) {
 			ItemStack stack = buildWithData(level, entity);
 			if (!stack.isEmpty()) {
+				// 带实体数据 / 画作变种的物品加一行紫色 +NBT 副标题
+				ItemNbtMarker.markNbt(stack);
 				return stack;
 			}
 		}

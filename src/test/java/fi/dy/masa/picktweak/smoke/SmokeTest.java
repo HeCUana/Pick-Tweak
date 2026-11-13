@@ -42,7 +42,7 @@ public class SmokeTest {
 		// 1. 配置：默认值（不依赖 MaLiLib） + MaLiLib 选项同步 + 运行时快照
 		Configs.installDefaults();
 		check("default snapshot", Configs.blockPicker.enabled && Configs.blockPicker.creativeRange == 100.0D
-						&& Configs.blockPicker.copyNbt && Configs.blockPicker.showCopiedNbt
+						&& !Configs.blockPicker.copyNbt && Configs.blockPicker.showCopiedNbt
 						&& Configs.blockPicker.copyState && !Configs.blockPicker.pickFluids
 						&& !Configs.blockPicker.copyNbtChatFeedback && !Configs.blockPicker.copyStateChatFeedback
 						&& Configs.inventory.lockedSlots.length == 9,
@@ -50,13 +50,15 @@ public class SmokeTest {
 		check("copy chat feedback defaults off",
 				!Configs.blockPicker.copyNbtChatFeedback && !Configs.blockPicker.copyStateChatFeedback,
 				"nbt=" + Configs.blockPicker.copyNbtChatFeedback + " state=" + Configs.blockPicker.copyStateChatFeedback);
+		check("nbt clipboard copy defaults off", !Configs.blockPicker.copyNbt,
+				"copyNbt=" + Configs.blockPicker.copyNbt);
 
 		MaliOptions.refresh();
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
 		String json = gson.toJson(MaliOptions.BLOCK_PICKER_ENABLED.getAsJsonElement());
 		check("config option json round-trip", json != null && json.contains("true"), json);
 		check("config snapshot", Configs.blockPicker.enabled && Configs.blockPicker.creativeRange == 100.0D
-						&& Configs.blockPicker.copyNbt && Configs.blockPicker.showCopiedNbt
+						&& !Configs.blockPicker.copyNbt && Configs.blockPicker.showCopiedNbt
 						&& Configs.toolPicker.tools.size() == 9 && Configs.toolPicker.weapons.size() == 6
 						&& Configs.toolPicker.tools.containsKey("sword") && Configs.toolPicker.weapons.containsKey("sword")
 						&& Configs.toolPicker.tools.containsKey("axe") && Configs.toolPicker.weapons.containsKey("axe")
@@ -329,6 +331,24 @@ public class SmokeTest {
 		check("block state text: campfire keeps lit",
 				campfireText.contains("lit="), campfireText);
 		check("block state text: plain block is empty", stoneText.isEmpty(), stoneText);
+
+		try {
+			var markerStack = new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.PAPER);
+			fi.dy.masa.picktweak.util.ItemNbtMarker.markNbt(markerStack);
+			var lore = markerStack.get(net.minecraft.core.component.DataComponents.LORE);
+			boolean hasLine = lore != null && lore.lines().stream()
+					.anyMatch(line -> "+NBT".equals(line.getString()));
+			check("nbt marker: +NBT lore line", hasLine, String.valueOf(lore));
+			fi.dy.masa.picktweak.util.ItemNbtMarker.markNbt(markerStack);
+			int markerLines = 0;
+			if (lore != null) {
+				markerLines = (int) markerStack.get(net.minecraft.core.component.DataComponents.LORE).lines().stream()
+						.filter(line -> "+NBT".equals(line.getString())).count();
+			}
+			check("nbt marker: no duplicate line", markerLines == 1, String.valueOf(markerLines));
+		} catch (Throwable t) {
+			System.out.println("    (skipped ItemStack-based nbt marker checks: vanilla data pack is not loaded in a bare JVM)");
+		}
 
 		// 14. 火 / 刷怪笼 / 光源等级（纯逻辑）
 		check("pick: spawner detection",
