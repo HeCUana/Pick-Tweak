@@ -14,6 +14,8 @@
   "picktweak.config.blockPickerCopyNbt": "Ctrl + средняя кнопка копирует NBT",
   "picktweak.config.blockPickerShowCopiedNbt": "Показывать скопированный NBT в чате",
   "picktweak.config.blockPickerCopyState": "Alt + средняя кнопка копирует состояние блока",
+  "picktweak.config.blockPickerCopyNbtChatFeedback": "Показывать сообщение в чате при копировании NBT (Ctrl + клик)",
+  "picktweak.config.blockPickerCopyStateChatFeedback": "Показывать сообщение в чате при копировании состояния блока (Alt + клик)",
   "picktweak.config.blockPickerAxiomMode": "Совместная работа с Axiom",
   "picktweak.config.blockEntityNbtBlacklist": "Чёрный список NBT блоков",
   "picktweak.config.statePropertyBlacklist": "Чёрный список свойств состояния блока",

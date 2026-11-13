@@ -44,8 +44,12 @@ public class SmokeTest {
 		check("default snapshot", Configs.blockPicker.enabled && Configs.blockPicker.creativeRange == 100.0D
 						&& Configs.blockPicker.copyNbt && Configs.blockPicker.showCopiedNbt
 						&& Configs.blockPicker.copyState && !Configs.blockPicker.pickFluids
+						&& !Configs.blockPicker.copyNbtChatFeedback && !Configs.blockPicker.copyStateChatFeedback
 						&& Configs.inventory.lockedSlots.length == 9,
 				"creative=" + Configs.blockPicker.creativeRange);
+		check("copy chat feedback defaults off",
+				!Configs.blockPicker.copyNbtChatFeedback && !Configs.blockPicker.copyStateChatFeedback,
+				"nbt=" + Configs.blockPicker.copyNbtChatFeedback + " state=" + Configs.blockPicker.copyStateChatFeedback);
 
 		MaliOptions.refresh();
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();

@@ -207,7 +207,7 @@ public final class ClientPicker {
 
 		CompoundTag tag = BlockPicker.blockEntityNbt(mc.level, pos);
 		String label = BlockPicker.blockId(mc.level.getBlockState(pos));
-		copyNbt(tag, label, config.blockEntityNbtBlacklist, config.showCopiedNbt);
+		copyNbt(tag, label, config.blockEntityNbtBlacklist, config.showCopiedNbt, config.copyNbtChatFeedback);
 	}
 
 	/**
@@ -226,12 +226,16 @@ public final class ClientPicker {
 		String text = BlockPicker.blockStateText(state);
 
 		if (text.isEmpty()) {
-			PbpText.chat(Component.translatable("picktweak.message.no_block_state", label));
+			if (config.copyStateChatFeedback) {
+				PbpText.chat(Component.translatable("picktweak.message.no_block_state", label));
+			}
 			return;
 		}
 
 		PbpText.copyToClipboard(text);
-		PbpText.chat(Component.translatable("picktweak.message.state_copied", label, text));
+		if (config.copyStateChatFeedback) {
+			PbpText.chat(Component.translatable("picktweak.message.state_copied", label, text));
+		}
 	}
 
 	/**
@@ -248,28 +252,34 @@ public final class ClientPicker {
 
 		CompoundTag tag = BlockPicker.entityNbt(mc.level, entity);
 		String label = entity.getName().getString();
-		copyNbt(tag, label, config.entityNbtBlacklist, config.showCopiedNbt);
+		copyNbt(tag, label, config.entityNbtBlacklist, config.showCopiedNbt, config.copyNbtChatFeedback);
 	}
 
 	/**
-	 * 把目标的 NBT 复制到剪贴板，并在聊天栏打印一份。
+	 * 把目标的 NBT 复制到剪贴板，并按配置决定是否在聊天栏给出提示。
 	 *
-	 * <p>剪贴板里放的是单行 SNBT（不含 id），可以直接粘进 {@code /data} 或 {@code /summon}；
-	 * 聊天栏里放的是同一份数据的缩进版，方便直接看装备、药水这些内容。</p>
+	 * <p>剪贴板始终写入单行 SNBT（不含 id），可以直接粘进 {@code /data} 或 {@code /summon}；
+	 * {@code chatFeedback} 为 true 时才输出「已复制 / 没有 NBT」提示，并在 {@code showInChat}
+	 * 开启时额外打印缩进版。</p>
 	 */
-	private static void copyNbt(CompoundTag tag, String label, List<String> blacklist, boolean showInChat) {
+	private static void copyNbt(CompoundTag tag, String label, List<String> blacklist, boolean showInChat, boolean chatFeedback) {
 		CompoundTag filtered = NbtFormatter.filter(tag, blacklist);
 
 		if (filtered == null || filtered.isEmpty()) {
-			PbpText.chat(Component.translatable("picktweak.message.no_nbt", label));
+			if (chatFeedback) {
+				PbpText.chat(Component.translatable("picktweak.message.no_nbt", label));
+			}
 			return;
 		}
 
 		PbpText.copyToClipboard(NbtFormatter.compact(filtered));
-		PbpText.chat(Component.translatable("picktweak.message.nbt_copied", label));
 
-		if (showInChat) {
-			PbpText.chat(Component.literal(NbtFormatter.pretty(filtered)));
+		if (chatFeedback) {
+			PbpText.chat(Component.translatable("picktweak.message.nbt_copied", label));
+
+			if (showInChat) {
+				PbpText.chat(Component.literal(NbtFormatter.pretty(filtered)));
+			}
 		}
 	}
 

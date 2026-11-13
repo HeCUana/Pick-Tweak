@@ -38,6 +38,8 @@ public final class Configs {
 	public static final boolean DEFAULT_BLOCK_PICKER_COPY_NBT = true;
 	public static final boolean DEFAULT_BLOCK_PICKER_SHOW_COPIED_NBT = true;
 	public static final boolean DEFAULT_BLOCK_PICKER_COPY_STATE = true;
+	public static final boolean DEFAULT_BLOCK_PICKER_COPY_NBT_CHAT_FEEDBACK = false;
+	public static final boolean DEFAULT_BLOCK_PICKER_COPY_STATE_CHAT_FEEDBACK = false;
 	public static final List<String> DEFAULT_BLOCK_ENTITY_NBT_BLACKLIST = List.of("id");
 	public static final List<String> DEFAULT_STATE_PROPERTY_BLACKLIST = List.of("waterlogged");
 	public static final List<String> DEFAULT_ENTITY_NBT_BLACKLIST =
@@ -125,6 +127,8 @@ public final class Configs {
 		public boolean copyNbt;
 		public boolean showCopiedNbt;
 		public boolean copyState;
+		public boolean copyNbtChatFeedback;
+		public boolean copyStateChatFeedback;
 		public AxiomMode axiomMode = AxiomMode.YIELD;
 		public List<String> blockEntityNbtBlacklist = new ArrayList<>();
 		public List<String> statePropertyBlacklist = new ArrayList<>();
@@ -273,6 +277,8 @@ public final class Configs {
 		bp.copyNbt = DEFAULT_BLOCK_PICKER_COPY_NBT;
 		bp.showCopiedNbt = DEFAULT_BLOCK_PICKER_SHOW_COPIED_NBT;
 		bp.copyState = DEFAULT_BLOCK_PICKER_COPY_STATE;
+		bp.copyNbtChatFeedback = DEFAULT_BLOCK_PICKER_COPY_NBT_CHAT_FEEDBACK;
+		bp.copyStateChatFeedback = DEFAULT_BLOCK_PICKER_COPY_STATE_CHAT_FEEDBACK;
 		bp.axiomMode = AxiomMode.YIELD;
 		bp.blockEntityNbtBlacklist = new ArrayList<>(DEFAULT_BLOCK_ENTITY_NBT_BLACKLIST);
 		bp.statePropertyBlacklist = new ArrayList<>(DEFAULT_STATE_PROPERTY_BLACKLIST);

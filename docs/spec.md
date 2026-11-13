@@ -97,7 +97,8 @@ Pick Tweak（模组 id `picktweak`）扩展了 Minecraft 原版的中键拾取�
 ### 3.4 反馈
 
 - `showPickFeedback`：拾取后显示拾取目标（以及 +NBT / +状态）。
-- `showCopiedNbt`：Ctrl 复制 NBT 时在聊天栏打印缩进版。
+- `showCopiedNbt`：Ctrl 复制 NBT 时在聊天栏打印缩进版（仅在 `blockPickerCopyNbtChatFeedback` 开启时生效）。
+- `blockPickerCopyNbtChatFeedback` / `blockPickerCopyStateChatFeedback`（默认均关闭）：控制 Ctrl / Alt 复制时的聊天提示（`nbt_copied` / `no_nbt` / 美化 NBT、`state_copied` / `no_block_state`）；关闭时只静默复制到剪贴板。
 - Alt 复制状态成功时提示 `state_copied`（方块名 + 状态文本）；目标没有状态属性时提示 `no_block_state`。
 - 太阳 / 月亮的等级循环：每次成功循环提示 `light_level`（当前光照等级）。
 - 服务端未安装且使用修饰键时提示一次（30 秒内不重复）。
@@ -274,7 +275,7 @@ NBT 输出由配置项 `includeNbt` 与 NBT 修饰键异或决定：默认 `incl
 
 - 需要 **MaLiLib**：装了才有面板（默认 K）与热键改键；没装也能用默认配置与默认 V / G 按键。
 - 面板分组：**区块拾取**、**ID 拾取**、**工具拾取**、**背包**、**创造模式**、**热键**（以及「全部」页）。
-- 「区块拾取」页可配置 `blockPickerCopyState`（Alt 是否复制状态文本，默认开）、`preferEntityHeads`（普通拾取是否优先头颅，默认开）、`blockPickerPickFluids`（流体拾取成桶，默认关）、NBT / 状态黑名单等。
+- 「区块拾取」页可配置 `blockPickerCopyState`（Alt 是否复制状态文本，默认开）、`blockPickerCopyNbtChatFeedback` / `blockPickerCopyStateChatFeedback`（复制时的聊天提示，默认关）、`preferEntityHeads`（普通拾取是否优先头颅，默认开）、`blockPickerPickFluids`（流体拾取成桶，默认关）、NBT / 状态黑名单等。
 - 面板内可直接搜索、改键、改值，保存后立即生效。
 
 ### 10.3 服务端配置项（`picktweak-server.json`）

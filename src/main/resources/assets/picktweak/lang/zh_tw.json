@@ -14,6 +14,8 @@
   "picktweak.config.blockPickerCopyNbt": "Ctrl + 中鍵複製 NBT",
   "picktweak.config.blockPickerShowCopiedNbt": "在聊天欄顯示複製的 NBT",
   "picktweak.config.blockPickerCopyState": "Alt + 中鍵複製方塊狀態",
+  "picktweak.config.blockPickerCopyNbtChatFeedback": "Ctrl + 中鍵複製時顯示聊天提示",
+  "picktweak.config.blockPickerCopyStateChatFeedback": "Alt + 中鍵複製時顯示聊天提示",
   "picktweak.config.blockPickerAxiomMode": "與 Axiom 共存方式",
   "picktweak.config.blockEntityNbtBlacklist": "方塊實體 NBT 黑名單",
   "picktweak.config.statePropertyBlacklist": "方塊狀態屬性黑名單",

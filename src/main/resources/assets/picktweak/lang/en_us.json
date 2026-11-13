@@ -14,6 +14,8 @@
   "picktweak.config.blockPickerCopyNbt": "Ctrl + middle click copies the NBT",
   "picktweak.config.blockPickerShowCopiedNbt": "Show the copied NBT in the chat box",
   "picktweak.config.blockPickerCopyState": "Alt + middle click copies the block state",
+  "picktweak.config.blockPickerCopyNbtChatFeedback": "Show a chat message when Ctrl + middle click copies NBT",
+  "picktweak.config.blockPickerCopyStateChatFeedback": "Show a chat message when Alt + middle click copies the block state",
   "picktweak.config.blockPickerAxiomMode": "How to coexist with Axiom",
   "picktweak.config.blockEntityNbtBlacklist": "Block entity NBT blacklist",
   "picktweak.config.statePropertyBlacklist": "Block state property blacklist",

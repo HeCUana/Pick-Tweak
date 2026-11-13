@@ -45,6 +45,14 @@ add("picktweak.config.blockPickerShowCopiedNbt", "在聊天栏显示复制的 NB
 add("picktweak.config.blockPickerCopyState", "Alt + 中键复制方块状态", "Alt + 中鍵複製方塊狀態",
     "Alt + middle click copies the block state", "Alt + clic du milieu copie l'état du bloc",
     "Alt + средняя кнопка копирует состояние блока")
+add("picktweak.config.blockPickerCopyNbtChatFeedback", "Ctrl + 中键复制时显示聊天提示", "Ctrl + 中鍵複製時顯示聊天提示",
+    "Show a chat message when Ctrl + middle click copies NBT",
+    "Afficher un message dans le chat lors de la copie NBT (Ctrl + clic)",
+    "Показывать сообщение в чате при копировании NBT (Ctrl + клик)")
+add("picktweak.config.blockPickerCopyStateChatFeedback", "Alt + 中键复制时显示聊天提示", "Alt + 中鍵複製時顯示聊天提示",
+    "Show a chat message when Alt + middle click copies the block state",
+    "Afficher un message dans le chat lors de la copie de l'état du bloc (Alt + clic)",
+    "Показывать сообщение в чате при копировании состояния блока (Alt + клик)")
 add("picktweak.config.blockPickerAxiomMode", "与 Axiom 共存方式", "與 Axiom 共存方式", "How to coexist with Axiom",
     "Coexistence avec Axiom", "Совместная работа с Axiom")
 add("picktweak.config.blockEntityNbtBlacklist", "方块实体 NBT 黑名单", "方塊實體 NBT 黑名單", "Block entity NBT blacklist",
