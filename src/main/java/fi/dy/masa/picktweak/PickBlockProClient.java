@@ -23,7 +23,9 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * 客户端入口。
@@ -78,30 +80,43 @@ public class PickBlockProClient implements ClientModInitializer {
 		}
 	}
 
-	/** 向创造模式物品栏注入配置好的附魔工具 / 武器。 */
+	/**
+	 * 把方案装备注入创造物品栏。
+	 *
+	 * <p>「管理员用品」（{@code minecraft:op_blocks}）始终注入；{@code creativeTab}
+	 * 配置的是额外追加的标签页（与管理员用品相同时自动去重）。</p>
+	 */
 	private void registerCreativeTab() {
-		Identifier tabId = Identifier.tryParse(Configs.creative.injectTab);
-		if (tabId == null) {
-			tabId = Identifier.withDefaultNamespace("op_blocks");
+		Set<Identifier> tabIds = new LinkedHashSet<>();
+
+		// 管理员用品：始终注入，方便随时取用
+		tabIds.add(Identifier.withDefaultNamespace("op_blocks"));
+
+		Identifier configured = Identifier.tryParse(Configs.creative.injectTab);
+		if (configured != null) {
+			tabIds.add(configured);
 		}
-		CreativeModeTabEvents.modifyOutputEvent(
+
+		for (Identifier tabId : tabIds) {
+			CreativeModeTabEvents.modifyOutputEvent(
 						ResourceKey.create(Registries.CREATIVE_MODE_TAB, tabId))
-				.register(output -> {
-					Minecraft mc = Minecraft.getInstance();
-					if (mc.level == null) {
-						return;
-					}
-					// 按方案表注入全部满附魔装备（武器 / 工具 / 盔甲与其他）
-					if (Configs.creative.injectWeapons) {
-						addAll(output, CreativeGear.weaponVariants(mc.level));
-					}
-					if (Configs.creative.injectTools) {
-						addAll(output, CreativeGear.toolVariants(mc.level));
-					}
-					if (Configs.creative.injectArmor) {
-						addAll(output, CreativeGear.armorVariants(mc.level));
-					}
-				});
+					.register(output -> {
+						Minecraft mc = Minecraft.getInstance();
+						if (mc.level == null) {
+							return;
+						}
+						// 按方案表注入全部满附魔装备（武器 / 工具 / 盔甲与其他）
+						if (Configs.creative.injectWeapons) {
+							addAll(output, CreativeGear.weaponVariants(mc.level));
+						}
+						if (Configs.creative.injectTools) {
+							addAll(output, CreativeGear.toolVariants(mc.level));
+						}
+						if (Configs.creative.injectArmor) {
+							addAll(output, CreativeGear.armorVariants(mc.level));
+						}
+					});
+		}
 	}
 
 	private void addAll(net.fabricmc.fabric.api.creativetab.v1.FabricCreativeModeTabOutput output, List<ItemStack> stacks) {

@@ -161,7 +161,7 @@ public final class MaliOptions {
 	public static final ConfigBoolean CREATIVE_INJECT_ARMOR = bool("creativeInjectArmor",
 			Configs.DEFAULT_CREATIVE_INJECT_ARMOR, "Inject the fully enchanted armor and gear into the creative inventory");
 	public static final ConfigString CREATIVE_TAB = str("creativeTab",
-			Configs.DEFAULT_CREATIVE_TAB, "The creative inventory tab to inject the items into");
+			Configs.DEFAULT_CREATIVE_TAB, "Additional creative inventory tab to inject the items into (the op_blocks tab is always used)");
 
 	/** 面板里显示的全部配置项。 */
 	public static final List<IConfigBase> ALL_CONFIGS = List.of(
