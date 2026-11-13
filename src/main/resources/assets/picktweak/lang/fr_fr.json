@@ -62,6 +62,7 @@
   "picktweak.config.lockHotbarSlot9": "Verrouiller la case 9",
   "picktweak.config.creativeInjectTools": "Injecter les outils dans l'onglet créatif",
   "picktweak.config.creativeInjectWeapons": "Injecter les armes dans l'onglet créatif",
+  "picktweak.config.creativeInjectArmor": "Injecter l'armure et l'équipement enchantés dans l'inventaire créatif",
   "picktweak.config.creativeTab": "L'onglet d'injection",
   "picktweak.config.hotkeyPickId": "Récupérer l'ID de la cible",
   "picktweak.config.hotkeyPickTool": "Récupérer l'outil ou l'arme",

@@ -62,6 +62,7 @@
   "picktweak.config.lockHotbarSlot9": "Lock hotbar slot 9",
   "picktweak.config.creativeInjectTools": "Inject tools into the creative tab",
   "picktweak.config.creativeInjectWeapons": "Inject weapons into the creative tab",
+  "picktweak.config.creativeInjectArmor": "Inject fully enchanted armor and gear into the creative inventory",
   "picktweak.config.creativeTab": "The tab to inject into",
   "picktweak.config.hotkeyPickId": "Pick the target ID",
   "picktweak.config.hotkeyPickTool": "Pick the tool or weapon",

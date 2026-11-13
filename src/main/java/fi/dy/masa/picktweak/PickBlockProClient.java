@@ -6,6 +6,7 @@ import fi.dy.masa.picktweak.compat.MalilibIntegration;
 import fi.dy.masa.picktweak.config.Configs;
 import fi.dy.masa.picktweak.config.HotkeyBinds;
 import fi.dy.masa.picktweak.id.IdPicker;
+import fi.dy.masa.picktweak.tool.CreativeGear;
 import fi.dy.masa.picktweak.tool.ToolPicker;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
@@ -22,6 +23,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
+import java.util.List;
 
 /**
  * 客户端入口。
@@ -89,24 +91,24 @@ public class PickBlockProClient implements ClientModInitializer {
 					if (mc.level == null) {
 						return;
 					}
-					if (Configs.creative.injectTools) {
-						for (String kind : ToolPicker.TOOL_KINDS) {
-							addItem(output, mc, kind, false);
-						}
-					}
+					// 按方案表注入全部满附魔装备（武器 / 工具 / 盔甲与其他）
 					if (Configs.creative.injectWeapons) {
-						for (String kind : ToolPicker.WEAPON_KINDS) {
-							addItem(output, mc, kind, true);
-						}
+						addAll(output, CreativeGear.weaponVariants(mc.level));
+					}
+					if (Configs.creative.injectTools) {
+						addAll(output, CreativeGear.toolVariants(mc.level));
+					}
+					if (Configs.creative.injectArmor) {
+						addAll(output, CreativeGear.armorVariants(mc.level));
 					}
 				});
 	}
 
-	private void addItem(net.fabricmc.fabric.api.creativetab.v1.FabricCreativeModeTabOutput output,
-			Minecraft mc, String kind, boolean weapon) {
-		ItemStack stack = ToolPicker.generateTool(mc.level, Configs.toolPicker, kind, weapon);
-		if (!stack.isEmpty()) {
-			output.accept(stack, CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);
+	private void addAll(net.fabricmc.fabric.api.creativetab.v1.FabricCreativeModeTabOutput output, List<ItemStack> stacks) {
+		for (ItemStack stack : stacks) {
+			if (!stack.isEmpty()) {
+				output.accept(stack, CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);
+			}
 		}
 	}
 

@@ -62,6 +62,7 @@
   "picktweak.config.lockHotbarSlot9": "Закрепить слот 9",
   "picktweak.config.creativeInjectTools": "Добавлять инструменты в творческую вкладку",
   "picktweak.config.creativeInjectWeapons": "Добавлять оружие в творческую вкладку",
+  "picktweak.config.creativeInjectArmor": "Добавлять зачарованную броню и снаряжение в творческий инвентарь",
   "picktweak.config.creativeTab": "Вкладка для добавления",
   "picktweak.config.hotkeyPickId": "Взять ID цели",
   "picktweak.config.hotkeyPickTool": "Взять инструмент или оружие",

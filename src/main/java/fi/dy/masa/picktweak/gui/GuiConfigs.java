@@ -210,6 +210,7 @@ public class GuiConfigs extends GuiConfigsBase implements IConfigGuiAllTab {
 				case CREATIVE -> List.of(
 						MaliOptions.CREATIVE_INJECT_TOOLS,
 						MaliOptions.CREATIVE_INJECT_WEAPONS,
+						MaliOptions.CREATIVE_INJECT_ARMOR,
 						MaliOptions.CREATIVE_TAB
 				);
 				case HOTKEYS -> hotkeyConfigs();

@@ -134,6 +134,10 @@ add("picktweak.config.creativeInjectTools", "注入工具到创造栏", "注入�
     "Injecter les outils dans l'onglet créatif", "Добавлять инструменты в творческую вкладку")
 add("picktweak.config.creativeInjectWeapons", "注入武器到创造栏", "注入武器到創造欄", "Inject weapons into the creative tab",
     "Injecter les armes dans l'onglet créatif", "Добавлять оружие в творческую вкладку")
+add("picktweak.config.creativeInjectArmor", "向创造物品栏注入满附魔盔甲与装备", "向創造物品欄注入滿附魔盔甲與裝備",
+    "Inject fully enchanted armor and gear into the creative inventory",
+    "Injecter l'armure et l'équipement enchantés dans l'inventaire créatif",
+    "Добавлять зачарованную броню и снаряжение в творческий инвентарь")
 add("picktweak.config.creativeTab", "注入到哪个标签页", "注入到哪個標籤頁", "The tab to inject into",
     "L'onglet d'injection", "Вкладка для добавления")
 

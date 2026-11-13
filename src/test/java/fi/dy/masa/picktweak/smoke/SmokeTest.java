@@ -45,13 +45,40 @@ public class SmokeTest {
 						&& !Configs.blockPicker.copyNbt && Configs.blockPicker.showCopiedNbt
 						&& Configs.blockPicker.copyState && !Configs.blockPicker.pickFluids
 						&& !Configs.blockPicker.copyNbtChatFeedback && !Configs.blockPicker.copyStateChatFeedback
-						&& Configs.inventory.lockedSlots.length == 9,
+						&& Configs.inventory.lockedSlots.length == 9 && Configs.creative.injectArmor,
 				"creative=" + Configs.blockPicker.creativeRange);
 		check("copy chat feedback defaults off",
 				!Configs.blockPicker.copyNbtChatFeedback && !Configs.blockPicker.copyStateChatFeedback,
 				"nbt=" + Configs.blockPicker.copyNbtChatFeedback + " state=" + Configs.blockPicker.copyStateChatFeedback);
 		check("nbt clipboard copy defaults off", !Configs.blockPicker.copyNbt,
 				"copyNbt=" + Configs.blockPicker.copyNbt);
+		var gearSchemes = fi.dy.masa.picktweak.tool.CreativeGear.schemes();
+		int gearWeapons = 0;
+		int gearTools = 0;
+		int gearArmor = 0;
+		int gearInvalidItems = 0;
+		int gearDuplicateLabels = 0;
+		var seenLabels = new java.util.ArrayList<String>();
+		for (var scheme : gearSchemes) {
+			switch (scheme.category()) {
+				case "weapon" -> gearWeapons++;
+				case "tool" -> gearTools++;
+				case "armor" -> gearArmor++;
+				default -> gearInvalidItems++;
+			}
+			if (!BuiltInRegistries.ITEM.containsKey(net.minecraft.resources.Identifier.parse(scheme.fallbackItemId()))) {
+				gearInvalidItems++;
+			}
+			if (seenLabels.contains(scheme.label())) {
+				gearDuplicateLabels++;
+			}
+			seenLabels.add(scheme.label());
+		}
+		check("creative gear: scheme counts", gearWeapons == 22 && gearTools == 11 && gearArmor == 22,
+				"weapons=" + gearWeapons + " tools=" + gearTools + " armor=" + gearArmor);
+		check("creative gear: fallback items exist and labels unique",
+				gearInvalidItems == 0 && gearDuplicateLabels == 0,
+				"invalidItems=" + gearInvalidItems + " dupLabels=" + gearDuplicateLabels);
 
 		MaliOptions.refresh();
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();

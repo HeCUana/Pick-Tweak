@@ -62,6 +62,7 @@
   "picktweak.config.lockHotbarSlot9": "锁定快捷栏 9",
   "picktweak.config.creativeInjectTools": "注入工具到创造栏",
   "picktweak.config.creativeInjectWeapons": "注入武器到创造栏",
+  "picktweak.config.creativeInjectArmor": "向创造物品栏注入满附魔盔甲与装备",
   "picktweak.config.creativeTab": "注入到哪个标签页",
   "picktweak.config.hotkeyPickId": "拾取目标 ID",
   "picktweak.config.hotkeyPickTool": "拾取工具 / 武器",

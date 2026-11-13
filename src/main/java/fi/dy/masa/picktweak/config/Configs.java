@@ -100,6 +100,7 @@ public final class Configs {
 
 	// 创造模式
 	public static final boolean DEFAULT_CREATIVE_INJECT_TOOLS = true;
+	public static final boolean DEFAULT_CREATIVE_INJECT_ARMOR = true;
 	public static final boolean DEFAULT_CREATIVE_INJECT_WEAPONS = true;
 	public static final String DEFAULT_CREATIVE_TAB = "minecraft:op_blocks";
 
@@ -194,6 +195,7 @@ public final class Configs {
 	public static final class Creative {
 		public boolean injectTools;
 		public boolean injectWeapons;
+		public boolean injectArmor;
 		public String injectTab = "minecraft:op_blocks";
 	}
 
@@ -323,6 +325,7 @@ public final class Configs {
 
 		creative.injectTools = DEFAULT_CREATIVE_INJECT_TOOLS;
 		creative.injectWeapons = DEFAULT_CREATIVE_INJECT_WEAPONS;
+		creative.injectArmor = DEFAULT_CREATIVE_INJECT_ARMOR;
 		creative.injectTab = DEFAULT_CREATIVE_TAB;
 	}
 

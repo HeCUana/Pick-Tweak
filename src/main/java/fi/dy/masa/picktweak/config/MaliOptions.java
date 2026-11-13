@@ -158,6 +158,8 @@ public final class MaliOptions {
 			Configs.DEFAULT_CREATIVE_INJECT_TOOLS, "Inject the configured tools into the creative inventory");
 	public static final ConfigBoolean CREATIVE_INJECT_WEAPONS = bool("creativeInjectWeapons",
 			Configs.DEFAULT_CREATIVE_INJECT_WEAPONS, "Inject the configured weapons into the creative inventory");
+	public static final ConfigBoolean CREATIVE_INJECT_ARMOR = bool("creativeInjectArmor",
+			Configs.DEFAULT_CREATIVE_INJECT_ARMOR, "Inject the fully enchanted armor and gear into the creative inventory");
 	public static final ConfigString CREATIVE_TAB = str("creativeTab",
 			Configs.DEFAULT_CREATIVE_TAB, "The creative inventory tab to inject the items into");
 
@@ -186,7 +188,7 @@ public final class MaliOptions {
 			LOCK_HOTBAR_SLOT_1, LOCK_HOTBAR_SLOT_2, LOCK_HOTBAR_SLOT_3, LOCK_HOTBAR_SLOT_4, LOCK_HOTBAR_SLOT_5,
 			LOCK_HOTBAR_SLOT_6, LOCK_HOTBAR_SLOT_7, LOCK_HOTBAR_SLOT_8, LOCK_HOTBAR_SLOT_9,
 
-			CREATIVE_INJECT_TOOLS, CREATIVE_INJECT_WEAPONS, CREATIVE_TAB
+			CREATIVE_INJECT_TOOLS, CREATIVE_INJECT_WEAPONS, CREATIVE_INJECT_ARMOR, CREATIVE_TAB
 	);
 
 	private MaliOptions() {
@@ -262,6 +264,7 @@ public final class MaliOptions {
 
 		Configs.creative.injectTools = CREATIVE_INJECT_TOOLS.getBooleanValue();
 		Configs.creative.injectWeapons = CREATIVE_INJECT_WEAPONS.getBooleanValue();
+		Configs.creative.injectArmor = CREATIVE_INJECT_ARMOR.getBooleanValue();
 		Configs.creative.injectTab = CREATIVE_TAB.getStringValue();
 	}
 
