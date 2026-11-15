@@ -38,7 +38,7 @@ public final class PbpCommands {
 				.then(literal("reload").executes(ctx -> {
 					// 重载需要服务端配合（客户端不能替代）。
 					if (!ClientPlayNetworking.canSend(PbpPayloads.Reload.TYPE)) {
-						ctx.getSource().sendFeedback(Component.translatable("picktweak.command.server_only"));
+						// 服务端未安装本模组：命令不可用，静默返回（不提示）
 						return 0;
 					}
 					ClientPlayNetworking.send(new PbpPayloads.Reload());
@@ -83,7 +83,7 @@ public final class PbpCommands {
 
 		// 物品发放由服务端权威处理；服务端没装本模组时不再本地伪造物品。
 		if (!ClientPlayNetworking.canSend(PbpPayloads.GiveTool.TYPE)) {
-			source.sendFeedback(Component.translatable("picktweak.command.server_only"));
+			// 服务端未安装本模组：命令不可用，静默返回（不提示）
 			return 0;
 		}
 
@@ -92,7 +92,6 @@ public final class PbpCommands {
 			return 1;
 		}
 
-		source.sendFeedback(Component.translatable("picktweak.command.server_only"));
 		return 0;
 	}
 }

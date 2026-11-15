@@ -84,7 +84,7 @@ Pick Tweak 不会和它抢同一个注入点，而是在「Axiom 明确要接管
 工具类型：`pickaxe`、`axe`、`shovel`、`hoe`、`sword`、`shears`、`bucket`、`fishing_rod`、`brush`；
 武器类型：`sword`、`axe`、`bow`、`crossbow`、`trident`、`mace`。
 
-`/pbp give` 与 `/pbp reload` 需要服务端安装本模组；服务端未安装时命令提示不可用，不会在本地生成物品。服务端已安装但请求被拒绝（`allowClientGive` 关闭或非 OP）时只提示。
+`/pbp give` 与 `/pbp reload` 需要服务端安装本模组；服务端未安装时命令不可用（**静默返回，不显示提示**），也不会在本地生成物品。服务端已安装但请求被拒绝（`allowClientGive` 关闭或非 OP）时只提示。
 
 ## 配置
 

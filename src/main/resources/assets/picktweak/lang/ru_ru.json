@@ -104,7 +104,6 @@
   "picktweak.message.state_copied": "Скопировано состояние блока %s: %s",
   "picktweak.message.no_block_state": "У %s нет состояния блока для копирования.",
   "picktweak.message.light_level": "Уровень света: %s",
-  "picktweak.command.server_only": "Для этой функции нужен Pick Tweak на сервере.",
   "picktweak.command.reload_success": "Пользовательские сопоставления перезагружены.",
   "picktweak.command.not_in_world": "Вы не в мире.",
   "picktweak.command.unknown_type": "Неизвестный тип: %s",

@@ -212,10 +212,6 @@ add("picktweak.message.no_block_state", "%s 没有可复制的方块状态。", 
 add("picktweak.message.light_level", "光照等级：%s", "光照等級：%s", "Light level: %s",
     "Niveau de lumière : %s", "Уровень света: %s")
 
-add("picktweak.command.server_only", "该功能需要服务端安装 Pick Tweak。", "該功能需要伺服器安裝 Pick Tweak。",
-    "This feature requires Pick Tweak on the server.",
-    "Cette fonctionnalité nécessite Pick Tweak sur le serveur.",
-    "Для этой функции нужен Pick Tweak на сервере.")
 
 # ---------------- 命令 ----------------
 add("picktweak.command.reload_success", "已重新载入自定义映射。", "已重新載入自訂映射。", "Custom mappings reloaded.",
